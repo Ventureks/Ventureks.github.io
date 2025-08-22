@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Users, CheckCircle, AlertCircle, FileText, Plus, Calendar, Mail, Bell } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { MainLayout } from "@/components/layout/main-layout";
 import type { Stats } from "@/lib/types";
 
 export default function Dashboard() {
+  const [, setLocation] = useLocation();
   const { data: stats, isLoading } = useQuery<Stats>({
     queryKey: ["/api/stats"],
   });
@@ -142,6 +144,7 @@ export default function Dashboard() {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start h-auto p-3"
+                  onClick={() => setLocation("/contractors")}
                   data-testid="quick-action-contractor"
                 >
                   <Plus className="w-5 h-5 text-gray-600 mr-3" />
@@ -151,6 +154,7 @@ export default function Dashboard() {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start h-auto p-3"
+                  onClick={() => setLocation("/tasks")}
                   data-testid="quick-action-meeting"
                 >
                   <Calendar className="w-5 h-5 text-gray-600 mr-3" />
@@ -160,6 +164,7 @@ export default function Dashboard() {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start h-auto p-3"
+                  onClick={() => setLocation("/offers")}
                   data-testid="quick-action-offer"
                 >
                   <FileText className="w-5 h-5 text-gray-600 mr-3" />
@@ -169,6 +174,7 @@ export default function Dashboard() {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start h-auto p-3"
+                  onClick={() => setLocation("/emails")}
                   data-testid="quick-action-email"
                 >
                   <Mail className="w-5 h-5 text-gray-600 mr-3" />
