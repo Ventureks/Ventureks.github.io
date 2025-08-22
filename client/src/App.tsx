@@ -1,0 +1,58 @@
+import { Switch, Route } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import Login from "@/pages/login";
+import Dashboard from "@/pages/dashboard";
+import Contractors from "@/pages/contractors";
+import Tasks from "@/pages/tasks";
+import Offers from "@/pages/offers";
+import Emails from "@/pages/emails";
+import Support from "@/pages/support";
+import NotFound from "@/pages/not-found";
+
+function Router() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div>Ładowanie...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login />;
+  }
+
+  return (
+    <Switch>
+      <Route path="/" component={() => <Dashboard />} />
+      <Route path="/dashboard" component={() => <Dashboard />} />
+      <Route path="/contractors" component={() => <Contractors />} />
+      <Route path="/tasks" component={() => <Tasks />} />
+      <Route path="/offers" component={() => <Offers />} />
+      <Route path="/emails" component={() => <Emails />} />
+      <Route path="/support" component={() => <Support />} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
