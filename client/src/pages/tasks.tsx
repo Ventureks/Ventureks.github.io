@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Clock, Edit, Trash2, Calendar } from "lucide-react";
+import { DayPicker } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import type { Task } from "@shared/schema";
+import "react-day-picker/dist/style.css";
 
 export default function Tasks() {
   const [newTask, setNewTask] = useState({
@@ -22,6 +24,7 @@ export default function Tasks() {
     priority: "medium",
     status: "pending"
   });
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -116,6 +119,26 @@ export default function Tasks() {
     }
   };
 
+  const getTasksForDate = (date: Date): Task[] => {
+    if (!tasks) return [];
+    const dateString = date.toISOString().split('T')[0];
+    return tasks.filter(task => task.date === dateString);
+  };
+
+  const getDatesWithTasks = (): Date[] => {
+    if (!tasks) return [];
+    return tasks
+      .map(task => new Date(task.date))
+      .filter((date, index, array) => 
+        array.findIndex(d => d.toDateString() === date.toDateString()) === index
+      );
+  };
+
+  const getSelectedDateTasks = (): Task[] => {
+    if (!selectedDate) return [];
+    return getTasksForDate(selectedDate);
+  };
+
   if (isLoading) {
     return (
       <MainLayout title="Planer zadań">
@@ -201,18 +224,64 @@ export default function Tasks() {
             </CardContent>
           </Card>
           
-          {/* Calendar Placeholder */}
+          {/* Calendar View */}
           <Card>
             <CardHeader>
-              <CardTitle>Kalendarz</CardTitle>
+              <CardTitle>Kalendarz zadań</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <Calendar className="w-12 h-12 mx-auto mb-2" />
-                  <p>Widok kalendarza</p>
-                  <p className="text-sm">Do implementacji z biblioteką kalendarza</p>
-                </div>
+              <div className="space-y-4">
+                <DayPicker
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  modifiers={{
+                    hasTask: getDatesWithTasks()
+                  }}
+                  modifiersStyles={{
+                    hasTask: { 
+                      backgroundColor: 'hsl(var(--primary))',
+                      color: 'white',
+                      fontWeight: 'bold'
+                    }
+                  }}
+                  className="border rounded-lg p-2"
+                  data-testid="calendar-picker"
+                />
+                
+                {selectedDate && (
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold mb-2">
+                      Zadania na {selectedDate.toLocaleDateString('pl-PL')}:
+                    </h4>
+                    {getSelectedDateTasks().length > 0 ? (
+                      <div className="space-y-2">
+                        {getSelectedDateTasks().map((task) => (
+                          <div 
+                            key={task.id}
+                            className="p-2 bg-gray-50 rounded border-l-4 border-primary"
+                            data-testid={`calendar-task-${task.id}`}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="font-medium text-sm">{task.title}</div>
+                                <div className="text-xs text-gray-600 flex items-center">
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  {task.time}
+                                </div>
+                              </div>
+                              <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
+                                {getPriorityLabel(task.priority)}
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">Brak zadań na ten dzień</p>
+                    )}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
