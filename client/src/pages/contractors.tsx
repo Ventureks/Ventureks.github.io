@@ -20,6 +20,14 @@ export default function Contractors() {
     email: "",
     phone: "",
     nip: "",
+    regon: "",
+    krs: "",
+    accountNumber: "",
+    province: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    country: "Polska",
     status: "active"
   });
   
@@ -40,7 +48,21 @@ export default function Contractors() {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
       notificationHelpers.contractorCreated(variables.name);
       setShowAddForm(false);
-      setNewContractor({ name: "", email: "", phone: "", nip: "", status: "active" });
+      setNewContractor({ 
+        name: "", 
+        email: "", 
+        phone: "", 
+        nip: "", 
+        regon: "",
+        krs: "",
+        accountNumber: "",
+        province: "",
+        address: "",
+        city: "",
+        postalCode: "",
+        country: "Polska",
+        status: "active" 
+      });
       toast({
         title: "Sukces",
         description: "Kontrahent został dodany",
@@ -160,6 +182,86 @@ export default function Contractors() {
                       value={newContractor.nip}
                       onChange={(e) => setNewContractor(prev => ({ ...prev, nip: e.target.value }))}
                       data-testid="input-contractor-nip"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="regon">REGON</Label>
+                    <Input
+                      id="regon"
+                      placeholder="123456789"
+                      value={newContractor.regon}
+                      onChange={(e) => setNewContractor(prev => ({ ...prev, regon: e.target.value }))}
+                      data-testid="input-contractor-regon"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="krs">KRS</Label>
+                    <Input
+                      id="krs"
+                      placeholder="0000123456"
+                      value={newContractor.krs}
+                      onChange={(e) => setNewContractor(prev => ({ ...prev, krs: e.target.value }))}
+                      data-testid="input-contractor-krs"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="accountNumber">Numer konta</Label>
+                    <Input
+                      id="accountNumber"
+                      placeholder="12 3456 7890 1234 5678 9012 3456"
+                      value={newContractor.accountNumber}
+                      onChange={(e) => setNewContractor(prev => ({ ...prev, accountNumber: e.target.value }))}
+                      data-testid="input-contractor-account-number"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="province">Województwo</Label>
+                    <Input
+                      id="province"
+                      placeholder="Mazowieckie"
+                      value={newContractor.province}
+                      onChange={(e) => setNewContractor(prev => ({ ...prev, province: e.target.value }))}
+                      data-testid="input-contractor-province"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="address">Adres siedziby</Label>
+                    <Input
+                      id="address"
+                      placeholder="ul. Przykładowa 123"
+                      value={newContractor.address}
+                      onChange={(e) => setNewContractor(prev => ({ ...prev, address: e.target.value }))}
+                      data-testid="input-contractor-address"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="city">Miasto</Label>
+                    <Input
+                      id="city"
+                      placeholder="Warszawa"
+                      value={newContractor.city}
+                      onChange={(e) => setNewContractor(prev => ({ ...prev, city: e.target.value }))}
+                      data-testid="input-contractor-city"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="postalCode">Kod pocztowy</Label>
+                    <Input
+                      id="postalCode"
+                      placeholder="00-001"
+                      value={newContractor.postalCode}
+                      onChange={(e) => setNewContractor(prev => ({ ...prev, postalCode: e.target.value }))}
+                      data-testid="input-contractor-postal-code"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="country">Kraj</Label>
+                    <Input
+                      id="country"
+                      placeholder="Polska"
+                      value={newContractor.country}
+                      onChange={(e) => setNewContractor(prev => ({ ...prev, country: e.target.value }))}
+                      data-testid="input-contractor-country"
                     />
                   </div>
                 </div>
