@@ -23,12 +23,13 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
     username: "",
-    password: ""
+    password: "",
+    login: ""
   });
   const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const validateForm = () => {
-    const newErrors = { username: "", password: "" };
+    const newErrors = { username: "", password: "", login: "" };
     
     if (!formData.username.trim()) {
       newErrors.username = "Nazwa użytkownika jest wymagana";
@@ -57,15 +58,21 @@ export default function Login() {
 
     try {
       if (!formData.recaptchaToken) {
-        setErrors(prev => ({ ...prev, username: "", password: "" }));
+        setErrors(prev => ({ ...prev, login: "Proszę potwierdzić, że nie jesteś robotem" }));
         return;
       }
 
+      // Clear any previous login errors
+      setErrors(prev => ({ ...prev, login: "" }));
+      
       await login(formData.username, formData.password, formData.recaptchaToken);
       setLocation("/dashboard");
     } catch (error) {
-      // Silent error handling - no red toast messages
-      console.log("Login error:", error);
+      // Show login error message
+      setErrors(prev => ({ 
+        ...prev, 
+        login: "Nieprawidłowa nazwa użytkownika lub hasło" 
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -76,6 +83,10 @@ export default function Login() {
     // Clear error when user starts typing
     if (errors[field as keyof typeof errors]) {
       setErrors(prev => ({ ...prev, [field]: "" }));
+    }
+    // Clear login error when user changes credentials
+    if (errors.login && (field === "username" || field === "password")) {
+      setErrors(prev => ({ ...prev, login: "" }));
     }
   };
 
@@ -144,6 +155,14 @@ export default function Login() {
                 />
               </div>
             </div>
+            
+            {errors.login && (
+              <div className="p-3 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-700">
+                <p className="text-sm text-red-800 dark:text-red-300 text-center">
+                  {errors.login}
+                </p>
+              </div>
+            )}
             
             <Button
               type="submit"
