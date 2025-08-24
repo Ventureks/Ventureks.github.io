@@ -268,13 +268,13 @@ export default function Tasks() {
                         {getSelectedDateTasks().map((task) => (
                           <div 
                             key={task.id}
-                            className="p-2 bg-gray-50 rounded border-l-4 border-primary"
+                            className="p-2 bg-gray-50 dark:bg-gray-700 rounded border-l-4 border-primary"
                             data-testid={`calendar-task-${task.id}`}
                           >
                             <div className="flex justify-between items-start">
                               <div>
                                 <div className="font-medium text-sm">{task.title}</div>
-                                <div className="text-xs text-gray-600 flex items-center">
+                                <div className="text-xs text-gray-600 dark:text-gray-300 flex items-center">
                                   <Clock className="w-3 h-3 mr-1" />
                                   {task.time}
                                 </div>
@@ -287,7 +287,7 @@ export default function Tasks() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-500">Brak zadań na ten dzień</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Brak zadań na ten dzień</p>
                     )}
                   </div>
                 )}
@@ -306,7 +306,7 @@ export default function Tasks() {
               {tasks?.map((task) => (
                 <div 
                   key={task.id}
-                  className={`flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 ${
+                  className={`flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 ${
                     task.status === "completed" ? "opacity-60" : ""
                   }`}
                   data-testid={`task-${task.id}`}
@@ -319,12 +319,12 @@ export default function Tasks() {
                       data-testid={`checkbox-task-${task.id}`}
                     />
                     <div>
-                      <div className={`font-medium text-gray-900 ${
+                      <div className={`font-medium text-gray-900 dark:text-white ${
                         task.status === "completed" ? "line-through" : ""
                       }`}>
                         {task.title}
                       </div>
-                      <div className="text-sm text-gray-500 flex items-center">
+                      <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
                         <Clock className="w-4 h-4 mr-1" />
                         {task.date} {task.time}
                         <Badge 
