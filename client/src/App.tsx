@@ -12,6 +12,7 @@ import Tasks from "@/pages/tasks";
 import Offers from "@/pages/offers";
 import Emails from "@/pages/emails";
 import Support from "@/pages/support";
+import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -38,6 +39,7 @@ function Router() {
       <Route path="/offers" component={() => <Offers />} />
       <Route path="/emails" component={() => <Emails />} />
       <Route path="/support" component={() => <Support />} />
+      <Route path="/settings" component={() => <Settings />} />
       <Route component={NotFound} />
     </Switch>
   );

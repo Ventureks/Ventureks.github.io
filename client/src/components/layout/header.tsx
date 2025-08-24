@@ -1,3 +1,4 @@
+import { useLocation } from "wouter";
 import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -8,6 +9,8 @@ interface HeaderProps {
 }
 
 export function Header({ title }: HeaderProps) {
+  const [, setLocation] = useLocation();
+
   return (
     <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 p-4">
       <div className="flex justify-between items-center">
@@ -17,7 +20,12 @@ export function Header({ title }: HeaderProps) {
           
           <ThemeToggle />
           
-          <Button variant="ghost" size="icon">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setLocation("/settings")}
+            data-testid="button-settings"
+          >
             <Settings className="w-6 h-6" />
           </Button>
         </div>

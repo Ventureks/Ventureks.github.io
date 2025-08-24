@@ -6,6 +6,7 @@ import {
   FileText, 
   Mail, 
   Shield, 
+  Settings,
   LogOut 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,8 @@ const menuItems = [
   { id: "tasks", label: "Planer zadań", icon: Calendar, path: "/tasks" },
   { id: "offers", label: "Oferty", icon: FileText, path: "/offers" },
   { id: "emails", label: "Wiadomości email", icon: Mail, path: "/emails" },
-  { id: "support", label: "Wsparcie", icon: Shield, path: "/support" }
+  { id: "support", label: "Wsparcie", icon: Shield, path: "/support" },
+  { id: "settings", label: "Ustawienia", icon: Settings, path: "/settings" }
 ];
 
 export function Sidebar() {
