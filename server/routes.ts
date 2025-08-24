@@ -8,11 +8,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { username, password, captcha } = req.body;
+      const { username, password, recaptchaToken } = req.body;
       
-      // Simple captcha validation (in production, use proper captcha service)
-      if (!captcha || captcha.length !== 4) {
-        return res.status(400).json({ message: "Nieprawidłowy kod CAPTCHA" });
+      // Google reCAPTCHA validation
+      if (!recaptchaToken) {
+        return res.status(400).json({ message: "Weryfikacja reCAPTCHA jest wymagana" });
+      }
+
+      // Verify reCAPTCHA token with Google (using test key - always passes in development)
+      const recaptchaResponse = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: `secret=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe&response=${recaptchaToken}`,
+      });
+
+      const recaptchaData = await recaptchaResponse.json();
+      if (!recaptchaData.success) {
+        return res.status(400).json({ message: "Weryfikacja reCAPTCHA nieudana" });
       }
       
       const user = await storage.getUserByUsername(username);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import ReCAPTCHA from "react-google-recaptcha";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -17,21 +18,21 @@ export default function Login() {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    captcha: ""
+    recaptchaToken: ""
   });
-  const [captchaCode] = useState(Math.floor(1000 + Math.random() * 9000).toString());
   const [isLoading, setIsLoading] = useState(false);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      if (formData.captcha !== captchaCode) {
-        throw new Error("Nieprawidłowy kod CAPTCHA");
+      if (!formData.recaptchaToken) {
+        throw new Error("Proszę potwierdzić, że nie jesteś robotem");
       }
 
-      await login(formData.username, formData.password, formData.captcha);
+      await login(formData.username, formData.password, formData.recaptchaToken);
       setLocation("/dashboard");
     } catch (error) {
       toast({
@@ -87,21 +88,17 @@ export default function Login() {
             </div>
             
             <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-              <Label htmlFor="captcha">Kod CAPTCHA</Label>
-              <div className="text-center mb-3">
-                <span className="text-2xl font-mono bg-white dark:bg-gray-600 dark:text-white px-4 py-2 rounded border border-gray-300 dark:border-gray-500 tracking-widest">
-                  {captchaCode}
-                </span>
+              <Label className="block mb-3">Weryfikacja Google</Label>
+              <div className="flex justify-center">
+                <ReCAPTCHA
+                  ref={recaptchaRef}
+                  sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+                  onChange={(token) => setFormData(prev => ({ ...prev, recaptchaToken: token || "" }))}
+                  onExpired={() => setFormData(prev => ({ ...prev, recaptchaToken: "" }))}
+                  theme="light"
+                  data-testid="recaptcha"
+                />
               </div>
-              <Input
-                id="captcha"
-                type="text"
-                placeholder="Wpisz kod CAPTCHA"
-                value={formData.captcha}
-                onChange={(e) => setFormData(prev => ({ ...prev, captcha: e.target.value }))}
-                required
-                data-testid="input-captcha"
-              />
             </div>
             
             <Button

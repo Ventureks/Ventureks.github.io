@@ -3,7 +3,7 @@ import type { AuthUser } from "@/lib/types";
 
 interface AuthContextType {
   user: AuthUser | null;
-  login: (username: string, password: string, captcha: string) => Promise<void>;
+  login: (username: string, password: string, recaptchaToken: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -23,11 +23,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (username: string, password: string, captcha: string) => {
+  const login = async (username: string, password: string, recaptchaToken: string) => {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password, captcha }),
+      body: JSON.stringify({ username, password, recaptchaToken }),
     });
 
     if (!response.ok) {

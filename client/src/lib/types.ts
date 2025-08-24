@@ -1,7 +1,7 @@
 export interface LoginFormData {
   username: string;
   password: string;
-  captcha: string;
+  recaptchaToken: string;
 }
 
 export interface AuthUser {
