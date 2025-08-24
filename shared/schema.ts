@@ -125,24 +125,23 @@ export const insertTaskSchema = createInsertSchema(tasks).pick({
   status: true,
 });
 
-export const insertOfferSchema = createInsertSchema(offers).pick({
-  contractorName: true,
-  title: true,
-  description: true,
-  amount: true,
-  vatRate: true,
-  discountPercent: true,
-  finalAmount: true,
-  currency: true,
-  validUntil: true,
-  paymentTerms: true,
-  category: true,
-  notes: true,
-  status: true,
+export const insertOfferSchema = createInsertSchema(offers).omit({
+  id: true,
+  contractorId: true,
+  sentAt: true,
+  createdAt: true,
 }).extend({
   validUntil: z.string().optional().nullable(),
-  description: z.string().optional().nullable(),
+  description: z.string().optional().nullable(), 
   notes: z.string().optional().nullable(),
+  amount: z.number(),
+  vatRate: z.number().optional().default(23),
+  discountPercent: z.number().optional().default(0),
+  finalAmount: z.number(),
+  currency: z.string().optional().default("PLN"),
+  paymentTerms: z.string().optional().default("14 dni"),
+  category: z.string().optional().default("Standardowa"),
+  status: z.string().optional().default("draft"),
 });
 
 export const insertEmailSchema = createInsertSchema(emails).pick({

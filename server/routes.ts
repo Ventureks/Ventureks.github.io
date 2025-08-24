@@ -142,15 +142,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/offers", async (req, res) => {
     try {
+      console.log("Received offer data:", JSON.stringify(req.body, null, 2));
       const result = insertOfferSchema.safeParse(req.body);
       if (!result.success) {
-        console.error("Validation errors:", result.error.errors);
+        console.error("Validation errors:", JSON.stringify(result.error.errors, null, 2));
         return res.status(400).json({ 
           message: "Nieprawidłowe dane",
           errors: result.error.errors 
         });
       }
       
+      console.log("Validated data:", JSON.stringify(result.data, null, 2));
       const offer = await storage.createOffer(result.data);
       res.status(201).json(offer);
     } catch (error) {
