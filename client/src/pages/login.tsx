@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -44,14 +45,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Card className="w-96 shadow-lg border border-gray-200">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 relative">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      <Card className="w-96 shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
         <CardHeader className="text-center pb-2">
           <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
             <Users className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">System CRM</h2>
-          <p className="text-gray-600">Zaloguj się do systemu</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">System CRM</h2>
+          <p className="text-gray-600 dark:text-gray-300">Zaloguj się do systemu</p>
         </CardHeader>
         
         <CardContent>
@@ -82,10 +86,10 @@ export default function Login() {
               />
             </div>
             
-            <div className="bg-gray-50 p-4 rounded-lg border">
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
               <Label htmlFor="captcha">Kod CAPTCHA</Label>
               <div className="text-center mb-3">
-                <span className="text-2xl font-mono bg-white px-4 py-2 rounded border tracking-widest">
+                <span className="text-2xl font-mono bg-white dark:bg-gray-600 dark:text-white px-4 py-2 rounded border border-gray-300 dark:border-gray-500 tracking-widest">
                   {captchaCode}
                 </span>
               </div>
@@ -109,10 +113,10 @@ export default function Login() {
               {isLoading ? "Logowanie..." : "Zaloguj się"}
             </Button>
             
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800 font-medium">Demo konta:</p>
-              <p className="text-sm text-blue-700">Admin: admin / admin123</p>
-              <p className="text-sm text-blue-700">User: user / user123</p>
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700">
+              <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">Demo konta:</p>
+              <p className="text-sm text-blue-700 dark:text-blue-400">Admin: admin / admin123</p>
+              <p className="text-sm text-blue-700 dark:text-blue-400">User: user / user123</p>
             </div>
           </form>
         </CardContent>
