@@ -251,7 +251,7 @@ export class MemStorage implements IStorage {
       vatRate: insertOffer.vatRate || 23,
       discountPercent: insertOffer.discountPercent || 0,
       currency: insertOffer.currency || 'PLN',
-      validUntil: insertOffer.validUntil || null,
+      validUntil: insertOffer.validUntil ? new Date(insertOffer.validUntil) : null,
       paymentTerms: insertOffer.paymentTerms || '14 dni',
       category: insertOffer.category || 'Standardowa',
       notes: insertOffer.notes || null,

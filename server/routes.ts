@@ -144,12 +144,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const result = insertOfferSchema.safeParse(req.body);
       if (!result.success) {
-        return res.status(400).json({ message: "Nieprawidłowe dane" });
+        console.error("Validation errors:", result.error.errors);
+        return res.status(400).json({ 
+          message: "Nieprawidłowe dane",
+          errors: result.error.errors 
+        });
       }
       
       const offer = await storage.createOffer(result.data);
       res.status(201).json(offer);
     } catch (error) {
+      console.error("Error creating offer:", error);
       res.status(500).json({ message: "Błąd tworzenia oferty" });
     }
   });

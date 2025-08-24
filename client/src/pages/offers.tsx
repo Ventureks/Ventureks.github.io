@@ -60,7 +60,9 @@ export default function Offers() {
         vatRate,
         discountPercent,
         finalAmount,
-        validUntil: data.validUntil ? new Date(data.validUntil).toISOString() : null
+        validUntil: data.validUntil || null,
+        description: data.description || null,
+        notes: data.notes || null
       });
     },
     onSuccess: () => {

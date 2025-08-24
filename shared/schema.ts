@@ -139,6 +139,10 @@ export const insertOfferSchema = createInsertSchema(offers).pick({
   category: true,
   notes: true,
   status: true,
+}).extend({
+  validUntil: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
 });
 
 export const insertEmailSchema = createInsertSchema(emails).pick({
