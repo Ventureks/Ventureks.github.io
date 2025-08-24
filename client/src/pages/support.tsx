@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Eye, Check } from "lucide-react";
+import { Plus, Eye, Check, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -24,6 +24,7 @@ export default function Support() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/support-tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
       toast({
         title: "Sukces",
         description: "Zgłoszenie zostało rozwiązane",
@@ -31,8 +32,26 @@ export default function Support() {
     },
   });
 
+  const inProgressTicketMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("PUT", `/api/support-tickets/${id}`, { status: "in_progress" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/support-tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      toast({
+        title: "Sukces",
+        description: "Zgłoszenie zostało rozpoczęte",
+      });
+    },
+  });
+
   const handleResolve = (id: string) => {
     resolveTicketMutation.mutate(id);
+  };
+
+  const handleInProgress = (id: string) => {
+    inProgressTicketMutation.mutate(id);
   };
 
   const getStats = () => {
@@ -211,6 +230,28 @@ export default function Support() {
                           <Eye className="w-4 h-4" />
                         </Button>
                         {ticket.status === "open" && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleInProgress(ticket.id)}
+                              className="text-yellow-600 hover:text-yellow-900"
+                              data-testid={`button-progress-ticket-${ticket.id}`}
+                            >
+                              <Clock className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleResolve(ticket.id)}
+                              className="text-green-600 hover:text-green-900"
+                              data-testid={`button-resolve-ticket-${ticket.id}`}
+                            >
+                              <Check className="w-4 h-4" />
+                            </Button>
+                          </>
+                        )}
+                        {ticket.status === "in_progress" && (
                           <Button
                             variant="ghost"
                             size="icon"
