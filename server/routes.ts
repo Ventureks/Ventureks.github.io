@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertContractorSchema, insertTaskSchema, insertOfferSchema, insertEmailSchema, insertSupportTicketSchema, insertNotificationSchema, insertUserSchema, updateUserSchema } from "@shared/schema";
+import { emailService } from "./email-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication
@@ -195,7 +196,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Nieprawidłowe dane" });
       }
       
+      // Save email to database first
       const email = await storage.createEmail({ ...result.data, userId });
+      
+      // Send email via SMTP if configured and status is "sent"
+      if (result.data.status === "sent" && emailService.isConfigured()) {
+        const smtpResult = await emailService.sendEmail({
+          to: result.data.to,
+          subject: result.data.subject,
+          content: result.data.content || ""
+        });
+        
+        if (!smtpResult.success) {
+          // Update email status to failed if SMTP sending failed
+          await storage.updateEmail(email.id, { status: "failed" });
+          return res.status(500).json({ 
+            message: `Email zapisany ale nie wysłany: ${smtpResult.error}` 
+          });
+        }
+      }
+      
       res.status(201).json(email);
     } catch (error) {
       res.status(500).json({ message: "Błąd tworzenia emaila" });

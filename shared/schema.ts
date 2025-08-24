@@ -55,7 +55,7 @@ export const emails = pgTable("emails", {
   to: text("to").notNull(),
   subject: text("subject").notNull(),
   content: text("content"),
-  status: text("status").notNull().default("draft"),
+  status: text("status").notNull().default("draft"), // draft, sent, failed
   userId: varchar("user_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });

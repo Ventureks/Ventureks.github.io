@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Send } from "lucide-react";
+import { Send, Settings, AlertCircle, CheckCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MainLayout } from "@/components/layout/main-layout";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
+import { Link } from "wouter";
 import type { Email } from "@shared/schema";
 
 export default function Emails() {
@@ -27,6 +29,10 @@ export default function Emails() {
 
   const { data: emails, isLoading } = useQuery<Email[]>({
     queryKey: ["/api/emails"],
+  });
+
+  const { data: smtpStatus } = useQuery({
+    queryKey: ["/api/smtp/status"],
   });
 
   const sendEmailMutation = useMutation({
@@ -67,10 +73,64 @@ export default function Emails() {
     );
   }
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "sent":
+        return <CheckCircle className="w-4 h-4" />;
+      case "failed":
+        return <AlertCircle className="w-4 h-4" />;
+      default:
+        return <Clock className="w-4 h-4" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "sent":
+        return "bg-green-100 text-green-800";
+      case "failed":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-yellow-100 text-yellow-800";
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "sent":
+        return "Wysłany";
+      case "failed":
+        return "Błąd";
+      default:
+        return "Szkic";
+    }
+  };
+
   return (
     <MainLayout title="Wiadomości email">
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-gray-900">Serwis e-mail</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Serwis e-mail</h2>
+          <Link href="/email-settings">
+            <Button variant="outline" size="sm" data-testid="button-email-settings">
+              <Settings className="w-4 h-4 mr-2" />
+              Ustawienia SMTP
+            </Button>
+          </Link>
+        </div>
+
+        {/* SMTP Status Alert */}
+        {!smtpStatus?.configured && (
+          <Alert>
+            <AlertCircle className="w-4 h-4" />
+            <AlertDescription>
+              SMTP nie jest skonfigurowany. Wiadomości będą zapisane jako szkice.{" "}
+              <Link href="/email-settings" className="underline">
+                Skonfiguruj SMTP
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* New Email Form */}
@@ -151,9 +211,12 @@ export default function Emails() {
                       <div className="text-sm">
                         <Badge 
                           variant={email.status === "sent" ? "default" : "secondary"}
-                          className={email.status === "sent" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
+                          className={getStatusColor(email.status)}
                         >
-                          {email.status === "sent" ? "Wysłano" : "Szkic"}
+                          <span className="flex items-center space-x-1">
+                            {getStatusIcon(email.status)}
+                            <span>{getStatusText(email.status)}</span>
+                          </span>
                         </Badge>
                         <div className="text-gray-500 mt-1">
                           {email.createdAt ? new Date(email.createdAt).toLocaleDateString('pl-PL') : '-'}

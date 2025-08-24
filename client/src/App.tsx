@@ -11,6 +11,7 @@ import Contractors from "@/pages/contractors";
 import Tasks from "@/pages/tasks";
 import Offers from "@/pages/offers";
 import Emails from "@/pages/emails";
+import EmailSettings from "@/pages/email-settings";
 import Support from "@/pages/support";
 import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
@@ -38,6 +39,7 @@ function Router() {
       <Route path="/tasks" component={() => <Tasks />} />
       <Route path="/offers" component={() => <Offers />} />
       <Route path="/emails" component={() => <Emails />} />
+      <Route path="/email-settings" component={() => <EmailSettings />} />
       <Route path="/support" component={() => <Support />} />
       <Route path="/settings" component={() => <Settings />} />
       <Route component={NotFound} />
