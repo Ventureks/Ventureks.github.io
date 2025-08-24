@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Eye, Edit, Trash2 } from "lucide-react";
+import { Plus, Eye, Edit, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MainLayout } from "@/components/layout/main-layout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -15,6 +16,7 @@ import type { Contractor } from "@shared/schema";
 
 export default function Contractors() {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedContractor, setSelectedContractor] = useState<Contractor | null>(null);
   const [newContractor, setNewContractor] = useState({
     name: "",
     email: "",
@@ -106,6 +108,10 @@ export default function Contractors() {
     if (confirm("Czy na pewno chcesz usunąć tego kontrahenta?")) {
       deleteContractorMutation.mutate(id);
     }
+  };
+
+  const handleViewDetails = (contractor: Contractor) => {
+    setSelectedContractor(contractor);
   };
 
   if (isLoading) {
@@ -322,7 +328,12 @@ export default function Contractors() {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        <Button variant="ghost" size="icon" data-testid={`button-view-${contractor.id}`}>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleViewDetails(contractor)}
+                          data-testid={`button-view-${contractor.id}`}
+                        >
                           <Eye className="w-4 h-4" />
                         </Button>
                         <Button variant="ghost" size="icon" data-testid={`button-edit-${contractor.id}`}>
@@ -346,6 +357,147 @@ export default function Contractors() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Szczegóły kontrahenta */}
+      <Dialog open={!!selectedContractor} onOpenChange={() => setSelectedContractor(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Szczegóły kontrahenta</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSelectedContractor(null)}
+                data-testid="button-close-contractor-details"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedContractor && (
+            <div className="space-y-6">
+              {/* Informacje podstawowe */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Informacje podstawowe</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="font-semibold">Nazwa firmy</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{selectedContractor.name}</p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">Status</Label>
+                      <div className="mt-1">
+                        <Badge 
+                          variant={selectedContractor.status === "active" ? "default" : "secondary"}
+                          className={selectedContractor.status === "active" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}
+                        >
+                          {selectedContractor.status === "active" ? "Aktywny" : "Nieaktywny"}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">Data utworzenia</Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {selectedContractor.createdAt ? new Date(selectedContractor.createdAt).toLocaleDateString('pl-PL') : 'Brak danych'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Dane kontaktowe */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Dane kontaktowe</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="font-semibold">Email</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{selectedContractor.email}</p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">Telefon</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{selectedContractor.phone}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Dane firmy */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Dane firmy</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label className="font-semibold">NIP</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{selectedContractor.nip || 'Brak danych'}</p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">REGON</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{selectedContractor.regon || 'Brak danych'}</p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">KRS</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{selectedContractor.krs || 'Brak danych'}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Dane bankowe */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Dane bankowe</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div>
+                    <Label className="font-semibold">Numer konta</Label>
+                    <p className="text-sm text-muted-foreground mt-1">{selectedContractor.accountNumber || 'Brak danych'}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Adres */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Adres siedziby</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="font-semibold">Adres</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{selectedContractor.address || 'Brak danych'}</p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">Miasto</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{selectedContractor.city || 'Brak danych'}</p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">Kod pocztowy</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{selectedContractor.postalCode || 'Brak danych'}</p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">Województwo</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{selectedContractor.province || 'Brak danych'}</p>
+                    </div>
+                    <div>
+                      <Label className="font-semibold">Kraj</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{selectedContractor.country || 'Brak danych'}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }
