@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MainLayout } from "@/components/layout/main-layout";
 import type { Stats } from "@/lib/types";
+import type { Notification } from "@shared/schema";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -12,11 +13,24 @@ export default function Dashboard() {
     queryKey: ["/api/stats"],
   });
 
-  const notifications = [
-    { id: 1, message: "Nowa wiadomość od kontrahenta", time: "5 min temu", type: "info" },
-    { id: 2, message: "Zbliżające się spotkanie", time: "1 godz. temu", type: "warning" },
-    { id: 3, message: "Nowa oferta wymaga zatwierdzenia", time: "2 godz. temu", type: "info" }
-  ];
+  const { data: notifications = [] } = useQuery<Notification[]>({
+    queryKey: ["/api/notifications"],
+  });
+
+  const recentNotifications = notifications.slice(0, 5);
+
+  const formatTimeAgo = (date: Date | string | null) => {
+    if (!date) return "";
+    const now = new Date();
+    const notificationDate = new Date(date);
+    const diffMs = now.getTime() - notificationDate.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    
+    if (diffMins < 1) return "przed chwilą";
+    if (diffMins < 60) return `${diffMins} min temu`;
+    if (diffMins < 1440) return `${Math.floor(diffMins / 60)} godz. temu`;
+    return `${Math.floor(diffMins / 1440)} dni temu`;
+  };
 
   if (isLoading) {
     return (
@@ -106,28 +120,36 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {notifications.map(notification => (
-                  <div 
-                    key={notification.id} 
-                    className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg"
-                    data-testid={`notification-${notification.id}`}
-                  >
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mr-3">
-                        <Bell className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {notification.message}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {notification.time}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                {recentNotifications.length === 0 ? (
+                  <div className="text-center text-gray-500 dark:text-gray-400 py-4">
+                    Brak powiadomień
                   </div>
-                ))}
+                ) : (
+                  recentNotifications.map(notification => (
+                    <div 
+                      key={notification.id} 
+                      className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg"
+                      data-testid={`notification-${notification.id}`}
+                    >
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mr-3">
+                          <Bell className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <div className={`text-sm ${notification.read ? 'text-gray-700 dark:text-gray-300' : 'font-medium text-gray-900 dark:text-white'}`}>
+                            {notification.message}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatTimeAgo(notification.createdAt)}
+                          </div>
+                        </div>
+                      </div>
+                      {!notification.read && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>

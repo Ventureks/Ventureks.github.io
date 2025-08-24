@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertContractorSchema, insertTaskSchema, insertOfferSchema, insertEmailSchema, insertSupportTicketSchema } from "@shared/schema";
+import { insertContractorSchema, insertTaskSchema, insertOfferSchema, insertEmailSchema, insertSupportTicketSchema, insertNotificationSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication
@@ -237,6 +237,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(ticket);
     } catch (error) {
       res.status(500).json({ message: "Błąd aktualizacji zgłoszenia" });
+    }
+  });
+
+  // Notifications
+  app.get("/api/notifications", async (req, res) => {
+    try {
+      const userId = "default-user"; // For now, using default user since we don't have auth
+      const notifications = await storage.getNotifications(userId);
+      res.json(notifications.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()));
+    } catch (error) {
+      res.status(500).json({ message: "Błąd pobierania powiadomień" });
+    }
+  });
+
+  app.post("/api/notifications", async (req, res) => {
+    try {
+      const result = insertNotificationSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Nieprawidłowe dane" });
+      }
+      
+      const notification = await storage.createNotification({
+        ...result.data,
+        userId: "default-user"
+      });
+      res.status(201).json(notification);
+    } catch (error) {
+      res.status(500).json({ message: "Błąd tworzenia powiadomienia" });
+    }
+  });
+
+  app.patch("/api/notifications/:id/read", async (req, res) => {
+    try {
+      await storage.markNotificationRead(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Błąd oznaczania powiadomienia" });
     }
   });
 

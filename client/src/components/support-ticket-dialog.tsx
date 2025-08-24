@@ -30,6 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { notificationHelpers } from "@/lib/notifications";
 import { insertSupportTicketSchema, type InsertSupportTicket } from "@shared/schema";
 
 interface SupportTicketDialogProps {
@@ -56,9 +57,11 @@ export function SupportTicketDialog({ children }: SupportTicketDialogProps) {
     mutationFn: async (data: InsertSupportTicket) => {
       await apiRequest("POST", "/api/support-tickets", data);
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/support-tickets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      notificationHelpers.supportTicketCreated(variables.user);
       toast({
         title: "Sukces",
         description: "Zgłoszenie zostało utworzone",

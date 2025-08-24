@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { MainLayout } from "@/components/layout/main-layout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { notificationHelpers } from "@/lib/notifications";
 import type { Contractor } from "@shared/schema";
 
 export default function Contractors() {
@@ -33,8 +34,11 @@ export default function Contractors() {
     mutationFn: async (data: typeof newContractor) => {
       await apiRequest("POST", "/api/contractors", data);
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/contractors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      notificationHelpers.contractorCreated(variables.name);
       setShowAddForm(false);
       setNewContractor({ name: "", email: "", phone: "", nip: "", status: "active" });
       toast({

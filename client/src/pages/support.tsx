@@ -8,6 +8,7 @@ import { MainLayout } from "@/components/layout/main-layout";
 import { SupportTicketDialog } from "@/components/support-ticket-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { notificationHelpers } from "@/lib/notifications";
 import type { SupportTicket } from "@shared/schema";
 
 export default function Support() {
@@ -22,9 +23,14 @@ export default function Support() {
     mutationFn: async (id: string) => {
       await apiRequest("PUT", `/api/support-tickets/${id}`, { status: "resolved" });
     },
-    onSuccess: () => {
+    onSuccess: (_, id) => {
+      const ticket = tickets?.find(t => t.id === id);
       queryClient.invalidateQueries({ queryKey: ["/api/support-tickets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      if (ticket) {
+        notificationHelpers.supportTicketResolved(ticket.user);
+      }
       toast({
         title: "Sukces",
         description: "Zgłoszenie zostało rozwiązane",
