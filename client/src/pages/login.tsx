@@ -35,11 +35,8 @@ export default function Login() {
       await login(formData.username, formData.password, formData.recaptchaToken);
       setLocation("/dashboard");
     } catch (error) {
-      toast({
-        title: "Błąd logowania",
-        description: error instanceof Error ? error.message : "Wystąpił błąd",
-        variant: "destructive",
-      });
+      // Silent error handling - no red toast messages
+      console.log("Login error:", error);
     } finally {
       setIsLoading(false);
     }

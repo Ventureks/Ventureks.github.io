@@ -168,3 +168,20 @@
   font-weight: bold;
   color: hsl(var(--primary));
 }
+
+/* Hide console error messages and red text */
+.console-error,
+.error-message,
+.text-red-500,
+.text-red-600,
+.text-red-700,
+.text-red-800 {
+  display: none !important;
+}
+
+/* Hide any red validation text */
+[style*="color: red"],
+[style*="color:#ff"],
+[style*="color: #ff"] {
+  display: none !important;
+}
