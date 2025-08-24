@@ -21,15 +21,44 @@ export default function Login() {
     recaptchaToken: ""
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({
+    username: "",
+    password: ""
+  });
   const recaptchaRef = useRef<ReCAPTCHA>(null);
+
+  const validateForm = () => {
+    const newErrors = { username: "", password: "" };
+    
+    if (!formData.username.trim()) {
+      newErrors.username = "Nazwa użytkownika jest wymagana";
+    } else if (formData.username.length < 3) {
+      newErrors.username = "Nazwa użytkownika musi mieć minimum 3 znaki";
+    }
+    
+    if (!formData.password.trim()) {
+      newErrors.password = "Hasło jest wymagane";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Hasło musi mieć minimum 6 znaków";
+    }
+    
+    setErrors(newErrors);
+    return !newErrors.username && !newErrors.password;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
       if (!formData.recaptchaToken) {
-        throw new Error("Proszę potwierdzić, że nie jesteś robotem");
+        setErrors(prev => ({ ...prev, username: "", password: "" }));
+        return;
       }
 
       await login(formData.username, formData.password, formData.recaptchaToken);
@@ -39,6 +68,14 @@ export default function Login() {
       console.log("Login error:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field as keyof typeof errors]) {
+      setErrors(prev => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -65,10 +102,15 @@ export default function Login() {
                 type="text"
                 placeholder="Wprowadź nazwę użytkownika"
                 value={formData.username}
-                onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-                required
+                onChange={(e) => handleInputChange("username", e.target.value)}
+                className={errors.username ? "border-red-500 focus:border-red-500" : ""}
                 data-testid="input-username"
               />
+              {errors.username && (
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                  {errors.username}
+                </p>
+              )}
             </div>
             
             <div>
@@ -78,10 +120,15 @@ export default function Login() {
                 type="password"
                 placeholder="Wprowadź hasło"
                 value={formData.password}
-                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                required
+                onChange={(e) => handleInputChange("password", e.target.value)}
+                className={errors.password ? "border-red-500 focus:border-red-500" : ""}
                 data-testid="input-password"
               />
+              {errors.password && (
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                  {errors.password}
+                </p>
+              )}
             </div>
             
             <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
