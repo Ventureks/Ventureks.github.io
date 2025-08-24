@@ -115,7 +115,7 @@ export default function Support() {
       open,
       inProgress,
       resolved,
-      avgTime: "2.3h"
+      avgTime: "48h"
     };
   };
 
