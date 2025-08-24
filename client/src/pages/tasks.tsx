@@ -121,14 +121,23 @@ export default function Tasks() {
 
   const getTasksForDate = (date: Date): Task[] => {
     if (!tasks) return [];
-    const dateString = date.toISOString().split('T')[0];
+    // Format date as YYYY-MM-DD in local timezone
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
+    
     return tasks.filter(task => task.date === dateString);
   };
 
   const getDatesWithTasks = (): Date[] => {
     if (!tasks) return [];
     return tasks
-      .map(task => new Date(task.date))
+      .map(task => {
+        // Parse date string as local date to avoid timezone issues
+        const [year, month, day] = task.date.split('-').map(Number);
+        return new Date(year, month - 1, day);
+      })
       .filter((date, index, array) => 
         array.findIndex(d => d.toDateString() === date.toDateString()) === index
       );
