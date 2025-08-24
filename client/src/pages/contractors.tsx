@@ -190,11 +190,11 @@ export default function Contractors() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nazwa</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Telefon</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Akcje</TableHead>
+                  <TableHead className="text-gray-900 dark:text-white">Nazwa</TableHead>
+                  <TableHead className="text-gray-900 dark:text-white">Email</TableHead>
+                  <TableHead className="text-gray-900 dark:text-white">Telefon</TableHead>
+                  <TableHead className="text-gray-900 dark:text-white">Status</TableHead>
+                  <TableHead className="text-gray-900 dark:text-white">Akcje</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -202,14 +202,14 @@ export default function Contractors() {
                   <TableRow key={contractor.id} data-testid={`contractor-row-${contractor.id}`}>
                     <TableCell>
                       <div>
-                        <div className="font-medium text-gray-900">{contractor.name}</div>
+                        <div className="font-medium text-gray-900 dark:text-white">{contractor.name}</div>
                         {contractor.nip && (
-                          <div className="text-sm text-gray-500">NIP: {contractor.nip}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">NIP: {contractor.nip}</div>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-900">{contractor.email}</TableCell>
-                    <TableCell className="text-sm text-gray-900">{contractor.phone}</TableCell>
+                    <TableCell className="text-sm text-gray-900 dark:text-white">{contractor.email}</TableCell>
+                    <TableCell className="text-sm text-gray-900 dark:text-white">{contractor.phone}</TableCell>
                     <TableCell>
                       <Badge 
                         variant={contractor.status === "active" ? "default" : "secondary"}
