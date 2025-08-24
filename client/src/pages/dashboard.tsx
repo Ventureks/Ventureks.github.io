@@ -170,7 +170,7 @@ export default function Dashboard() {
                   data-testid="quick-action-contractor"
                 >
                   <Plus className="w-5 h-5 text-gray-600 mr-3" />
-                  <span className="font-medium text-gray-900">Dodaj nowego kontrahenta</span>
+                  <span className="font-medium text-gray-900 dark:text-white">Dodaj nowego kontrahenta</span>
                 </Button>
                 
                 <Button 
@@ -180,7 +180,7 @@ export default function Dashboard() {
                   data-testid="quick-action-meeting"
                 >
                   <Calendar className="w-5 h-5 text-gray-600 mr-3" />
-                  <span className="font-medium text-gray-900">Zaplanuj spotkanie</span>
+                  <span className="font-medium text-gray-900 dark:text-white">Zaplanuj spotkanie</span>
                 </Button>
                 
                 <Button 
@@ -190,7 +190,7 @@ export default function Dashboard() {
                   data-testid="quick-action-offer"
                 >
                   <FileText className="w-5 h-5 text-gray-600 mr-3" />
-                  <span className="font-medium text-gray-900">Utwórz nową ofertę</span>
+                  <span className="font-medium text-gray-900 dark:text-white">Utwórz nową ofertę</span>
                 </Button>
                 
                 <Button 
@@ -200,7 +200,7 @@ export default function Dashboard() {
                   data-testid="quick-action-email"
                 >
                   <Mail className="w-5 h-5 text-gray-600 mr-3" />
-                  <span className="font-medium text-gray-900">Wyślij wiadomość email</span>
+                  <span className="font-medium text-gray-900 dark:text-white">Wyślij wiadomość email</span>
                 </Button>
               </div>
             </CardContent>
