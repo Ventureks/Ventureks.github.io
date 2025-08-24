@@ -45,8 +45,19 @@ export const offers = pgTable("offers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   contractorId: varchar("contractor_id").references(() => contractors.id),
   contractorName: text("contractor_name").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
   amount: integer("amount").notNull(),
-  status: text("status").notNull().default("draft"),
+  vatRate: integer("vat_rate").notNull().default(23), // VAT percentage
+  discountPercent: integer("discount_percent").default(0),
+  finalAmount: integer("final_amount").notNull(), // amount after discount and VAT
+  currency: text("currency").notNull().default("PLN"),
+  validUntil: timestamp("valid_until"),
+  paymentTerms: text("payment_terms").default("14 dni"),
+  category: text("category").default("Standardowa"),
+  notes: text("notes"),
+  status: text("status").notNull().default("draft"), // draft, sent, accepted, rejected, expired
+  sentAt: timestamp("sent_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -116,7 +127,17 @@ export const insertTaskSchema = createInsertSchema(tasks).pick({
 
 export const insertOfferSchema = createInsertSchema(offers).pick({
   contractorName: true,
+  title: true,
+  description: true,
   amount: true,
+  vatRate: true,
+  discountPercent: true,
+  finalAmount: true,
+  currency: true,
+  validUntil: true,
+  paymentTerms: true,
+  category: true,
+  notes: true,
   status: true,
 });
 

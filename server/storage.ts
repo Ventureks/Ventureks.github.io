@@ -247,6 +247,16 @@ export class MemStorage implements IStorage {
       ...insertOffer,
       id,
       contractorId: null,
+      description: insertOffer.description || null,
+      vatRate: insertOffer.vatRate || 23,
+      discountPercent: insertOffer.discountPercent || 0,
+      currency: insertOffer.currency || 'PLN',
+      validUntil: insertOffer.validUntil || null,
+      paymentTerms: insertOffer.paymentTerms || '14 dni',
+      category: insertOffer.category || 'Standardowa',
+      notes: insertOffer.notes || null,
+      status: insertOffer.status || 'draft',
+      sentAt: null,
       createdAt: new Date()
     };
     this.offers.set(id, offer);
