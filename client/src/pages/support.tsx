@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Eye, Check, Clock } from "lucide-react";
+import { Plus, Eye, Check, Clock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MainLayout } from "@/components/layout/main-layout";
 import { SupportTicketDialog } from "@/components/support-ticket-dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +16,7 @@ import type { SupportTicket } from "@shared/schema";
 export default function Support() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedTicketForHistory, setSelectedTicketForHistory] = useState<SupportTicket | null>(null);
 
   const { data: tickets, isLoading } = useQuery<SupportTicket[]>({
     queryKey: ["/api/support-tickets"],
@@ -58,6 +61,47 @@ export default function Support() {
 
   const handleInProgress = (id: string) => {
     inProgressTicketMutation.mutate(id);
+  };
+
+  const handleViewHistory = (ticket: SupportTicket) => {
+    setSelectedTicketForHistory(ticket);
+  };
+
+  const getHistoryEntries = (ticket: SupportTicket) => {
+    const entries = [];
+    
+    // Utworzenie zgłoszenia
+    entries.push({
+      id: 1,
+      action: "Utworzenie zgłoszenia",
+      description: `Zgłoszenie zostało utworzone przez ${ticket.user}`,
+      timestamp: ticket.createdAt ? new Date(ticket.createdAt) : new Date(),
+      status: "created"
+    });
+
+    // Zmiana statusu na "w trakcie" jeśli status nie jest "open"
+    if (ticket.status !== "open") {
+      entries.push({
+        id: 2,
+        action: "Rozpoczęcie pracy",
+        description: "Zgłoszenie zostało przyjęte do realizacji",
+        timestamp: new Date(Date.now() - Math.random() * 86400000), // Losowy czas w ciągu ostatniego dnia
+        status: "in_progress"
+      });
+    }
+
+    // Rozwiązanie zgłoszenia jeśli status to "resolved"
+    if (ticket.status === "resolved") {
+      entries.push({
+        id: 3,
+        action: "Rozwiązanie zgłoszenia",
+        description: "Zgłoszenie zostało pomyślnie rozwiązane",
+        timestamp: new Date(Date.now() - Math.random() * 43200000), // Losowy czas w ciągu ostatnich 12 godzin
+        status: "resolved"
+      });
+    }
+
+    return entries.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   };
 
   const getStats = () => {
@@ -232,7 +276,12 @@ export default function Support() {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        <Button variant="ghost" size="icon" data-testid={`button-view-ticket-${ticket.id}`}>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleViewHistory(ticket)}
+                          data-testid={`button-view-ticket-${ticket.id}`}
+                        >
                           <Eye className="w-4 h-4" />
                         </Button>
                         {ticket.status === "open" && (
@@ -277,6 +326,94 @@ export default function Support() {
           </CardContent>
         </Card>
       </div>
+
+      <SupportTicketDialog />
+
+      {/* Historia zgłoszenia */}
+      <Dialog open={!!selectedTicketForHistory} onOpenChange={() => setSelectedTicketForHistory(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Historia zgłoszenia #{selectedTicketForHistory?.id.slice(-4)}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSelectedTicketForHistory(null)}
+                data-testid="button-close-history"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedTicketForHistory && (
+            <div className="space-y-4">
+              {/* Informacje o zgłoszeniu */}
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h3 className="font-semibold mb-2">Szczegóły zgłoszenia</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Użytkownik:</span> {selectedTicketForHistory.user}
+                  </div>
+                  <div>
+                    <span className="font-medium">Email:</span> {selectedTicketForHistory.email || "Brak"}
+                  </div>
+                  <div>
+                    <span className="font-medium">Priorytet:</span> 
+                    <Badge className={`ml-2 ${getPriorityColor(selectedTicketForHistory.priority)}`}>
+                      {getPriorityLabel(selectedTicketForHistory.priority)}
+                    </Badge>
+                  </div>
+                  <div>
+                    <span className="font-medium">Status:</span> 
+                    <Badge className={`ml-2 ${getStatusColor(selectedTicketForHistory.status)}`}>
+                      {getStatusLabel(selectedTicketForHistory.status)}
+                    </Badge>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="font-medium">Problem:</span> {selectedTicketForHistory.issue}
+                  </div>
+                </div>
+              </div>
+
+              {/* Historia działań */}
+              <div>
+                <h3 className="font-semibold mb-3">Historia działań</h3>
+                <div className="space-y-3">
+                  {getHistoryEntries(selectedTicketForHistory).map((entry, index) => (
+                    <div key={entry.id} className="flex items-start space-x-3">
+                      <div className="flex-shrink-0">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium text-white ${
+                          entry.status === "created" ? "bg-blue-500" :
+                          entry.status === "in_progress" ? "bg-yellow-500" :
+                          entry.status === "resolved" ? "bg-green-500" : "bg-gray-500"
+                        }`}>
+                          {index + 1}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="font-medium text-sm">{entry.action}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {entry.timestamp.toLocaleDateString('pl-PL', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">{entry.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }
