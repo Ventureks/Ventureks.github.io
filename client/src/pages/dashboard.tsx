@@ -31,65 +31,65 @@ export default function Dashboard() {
       <div className="space-y-6">
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
                   <Users className="w-6 h-6 text-blue-600" />
                 </div>
                 <div className="ml-4">
-                  <div className="text-2xl font-bold text-gray-900" data-testid="stat-contractors">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="stat-contractors">
                     {stats?.contractors || 0}
                   </div>
-                  <div className="text-sm text-gray-600">Kontrahenci</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Kontrahenci</div>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
                   <CheckCircle className="w-6 h-6 text-green-600" />
                 </div>
                 <div className="ml-4">
-                  <div className="text-2xl font-bold text-gray-900" data-testid="stat-tasks">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="stat-tasks">
                     {stats?.activeTasks || 0}
                   </div>
-                  <div className="text-sm text-gray-600">Aktywne zadania</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Aktywne zadania</div>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
                   <AlertCircle className="w-6 h-6 text-yellow-600" />
                 </div>
                 <div className="ml-4">
-                  <div className="text-2xl font-bold text-gray-900" data-testid="stat-tickets">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="stat-tickets">
                     {stats?.openTickets || 0}
                   </div>
-                  <div className="text-sm text-gray-600">Otwarte zgłoszenia</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Otwarte zgłoszenia</div>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
                   <FileText className="w-6 h-6 text-purple-600" />
                 </div>
                 <div className="ml-4">
-                  <div className="text-2xl font-bold text-gray-900" data-testid="stat-offers">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="stat-offers">
                     {stats?.sentOffers || 0}
                   </div>
-                  <div className="text-sm text-gray-600">Wysłane oferty</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Wysłane oferty</div>
                 </div>
               </div>
             </CardContent>
@@ -98,9 +98,9 @@ export default function Dashboard() {
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Activities */}
-          <Card>
+          <Card className="bg-white dark:bg-gray-800">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
                 Ostatnie powiadomienia
               </CardTitle>
             </CardHeader>
@@ -109,18 +109,18 @@ export default function Dashboard() {
                 {notifications.map(notification => (
                   <div 
                     key={notification.id} 
-                    className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg"
+                    className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg"
                     data-testid={`notification-${notification.id}`}
                   >
                     <div className="flex items-center">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mr-3">
                         <Bell className="w-4 h-4 text-blue-600" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
                           {notification.message}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
                           {notification.time}
                         </div>
                       </div>
@@ -133,9 +133,9 @@ export default function Dashboard() {
           </Card>
           
           {/* Quick Actions */}
-          <Card>
+          <Card className="bg-white dark:bg-gray-800">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
                 Szybkie akcje
               </CardTitle>
             </CardHeader>

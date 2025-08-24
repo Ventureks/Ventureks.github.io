@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { MainLayout } from "@/components/layout/main-layout";
+import { SupportTicketDialog } from "@/components/support-ticket-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { SupportTicket } from "@shared/schema";
@@ -115,54 +116,56 @@ export default function Support() {
     <MainLayout title="System wsparcia">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">System wsparcia</h2>
-          <Button className="flex items-center" data-testid="button-new-ticket">
-            <Plus className="w-4 h-4 mr-2" />
-            Nowe zgłoszenie
-          </Button>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">System wsparcia</h2>
+          <SupportTicketDialog>
+            <Button className="flex items-center" data-testid="button-new-ticket">
+              <Plus className="w-4 h-4 mr-2" />
+              Nowe zgłoszenie
+            </Button>
+          </SupportTicketDialog>
         </div>
         
         {/* Support Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
+          <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-red-600" data-testid="stat-open-tickets">
                 {stats.open}
               </div>
-              <div className="text-sm text-gray-600">Otwarte zgłoszenia</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Otwarte zgłoszenia</div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-yellow-600" data-testid="stat-progress-tickets">
                 {stats.inProgress}
               </div>
-              <div className="text-sm text-gray-600">W trakcie</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">W trakcie</div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-green-600" data-testid="stat-resolved-tickets">
                 {stats.resolved}
               </div>
-              <div className="text-sm text-gray-600">Rozwiązane</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Rozwiązane</div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-blue-600" data-testid="stat-avg-time">
                 {stats.avgTime}
               </div>
-              <div className="text-sm text-gray-600">Śr. czas rozwiązania</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Śr. czas rozwiązania</div>
             </CardContent>
           </Card>
         </div>
         
         {/* Tickets Table */}
-        <Card>
+        <Card className="bg-white dark:bg-gray-800">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -178,17 +181,17 @@ export default function Support() {
               </TableHeader>
               <TableBody>
                 {tickets?.map((ticket) => (
-                  <TableRow key={ticket.id} data-testid={`ticket-row-${ticket.id}`}>
-                    <TableCell className="font-medium">#{ticket.id.slice(-4)}</TableCell>
+                  <TableRow key={ticket.id} data-testid={`ticket-row-${ticket.id}`} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <TableCell className="font-medium text-gray-900 dark:text-white">#{ticket.id.slice(-4)}</TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium text-gray-900">{ticket.user}</div>
+                        <div className="font-medium text-gray-900 dark:text-white">{ticket.user}</div>
                         {ticket.email && (
-                          <div className="text-sm text-gray-500">{ticket.email}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{ticket.email}</div>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-900">{ticket.issue}</TableCell>
+                    <TableCell className="text-sm text-gray-900 dark:text-white">{ticket.issue}</TableCell>
                     <TableCell>
                       <Badge className={getPriorityColor(ticket.priority)}>
                         {getPriorityLabel(ticket.priority)}
@@ -199,7 +202,7 @@ export default function Support() {
                         {getStatusLabel(ticket.status)}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-500">
+                    <TableCell className="text-sm text-gray-500 dark:text-gray-400">
                       {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pl-PL') : '-'}
                     </TableCell>
                     <TableCell>
