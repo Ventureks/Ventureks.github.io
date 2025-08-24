@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { User, Lock, Bell, Globe, Palette, Save, Eye, EyeOff } from "lucide-react";
+import { User, Lock, Bell, Globe, Palette, Save, Eye, EyeOff, Users, Plus, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,11 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { MainLayout } from "@/components/layout/main-layout";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useTheme } from "@/components/theme-provider";
+import type { User as UserType, InsertUser, UpdateUser } from "@shared/schema";
 
 export default function Settings() {
   const { user } = useAuth();
@@ -46,6 +49,22 @@ export default function Settings() {
     language: "pl",
     timezone: "Europe/Warsaw",
     dateFormat: "DD/MM/YYYY"
+  });
+
+  // User management state
+  const [showAddUserForm, setShowAddUserForm] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [newUser, setNewUser] = useState({
+    username: "",
+    email: "",
+    password: "",
+    role: "user"
+  });
+
+  // Users query - only for admin
+  const { data: users = [] } = useQuery<UserType[]>({
+    queryKey: ["/api/users"],
+    enabled: user?.role === "admin",
   });
 
   const updateProfileMutation = useMutation({
@@ -113,11 +132,114 @@ export default function Settings() {
     });
   };
 
+  // User management mutations
+  const createUserMutation = useMutation({
+    mutationFn: async (data: InsertUser) => {
+      await apiRequest("POST", "/api/users", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "Sukces",
+        description: "Użytkownik został utworzony",
+      });
+      setShowAddUserForm(false);
+      setNewUser({ username: "", email: "", password: "", role: "user" });
+    },
+    onError: (error) => {
+      toast({
+        title: "Błąd",
+        description: error instanceof Error ? error.message : "Nie udało się utworzyć użytkownika",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: UpdateUser }) => {
+      await apiRequest("PUT", `/api/users/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "Sukces",
+        description: "Użytkownik został zaktualizowany",
+      });
+      setEditingUserId(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Błąd",
+        description: error instanceof Error ? error.message : "Nie udało się zaktualizować użytkownika",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/users/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "Sukces",
+        description: "Użytkownik został usunięty",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Błąd",
+        description: error instanceof Error ? error.message : "Nie udało się usunąć użytkownika",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCreateUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUser.username || !newUser.email || !newUser.password) {
+      toast({
+        title: "Błąd",
+        description: "Wszystkie pola są wymagane",
+        variant: "destructive",
+      });
+      return;
+    }
+    createUserMutation.mutate(newUser);
+  };
+
+  const handleDeleteUser = (id: string, username: string) => {
+    if (id === user?.id) {
+      toast({
+        title: "Błąd",
+        description: "Nie możesz usunąć swojego własnego konta",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (confirm(`Czy na pewno chcesz usunąć użytkownika "${username}"?`)) {
+      deleteUserMutation.mutate(id);
+    }
+  };
+
+  const handleUpdateUserRole = (userId: string, newRole: string) => {
+    if (userId === user?.id && newRole !== user.role) {
+      toast({
+        title: "Błąd",
+        description: "Nie możesz zmienić swojej własnej roli",
+        variant: "destructive",
+      });
+      return;
+    }
+    updateUserMutation.mutate({ id: userId, data: { role: newRole } });
+  };
+
   return (
     <MainLayout title="Ustawienia">
       <div className="max-w-4xl mx-auto space-y-6">
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className={`grid w-full ${user?.role === "admin" ? "grid-cols-5" : "grid-cols-4"}`}>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Profil
@@ -134,6 +256,12 @@ export default function Settings() {
               <Globe className="w-4 h-4" />
               System
             </TabsTrigger>
+            {user?.role === "admin" && (
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Użytkownicy
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
@@ -460,6 +588,165 @@ export default function Settings() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* User Management Tab - Admin Only */}
+          {user?.role === "admin" && (
+            <TabsContent value="users" className="space-y-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-xl font-bold">Zarządzanie użytkownikami</CardTitle>
+                  <Button
+                    onClick={() => setShowAddUserForm(!showAddUserForm)}
+                    className="bg-primary hover:bg-primary/90"
+                    data-testid="button-add-user"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Dodaj użytkownika
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {showAddUserForm && (
+                    <div className="mb-6 p-4 border rounded-lg bg-muted/50">
+                      <h3 className="text-lg font-semibold mb-4">Nowy użytkownik</h3>
+                      <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="new-username">Nazwa użytkownika</Label>
+                          <Input
+                            id="new-username"
+                            type="text"
+                            value={newUser.username}
+                            onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                            placeholder="Wprowadź nazwę użytkownika"
+                            data-testid="input-new-username"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="new-email">Email</Label>
+                          <Input
+                            id="new-email"
+                            type="email"
+                            value={newUser.email}
+                            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                            placeholder="Wprowadź adres email"
+                            data-testid="input-new-email"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="new-password">Hasło</Label>
+                          <Input
+                            id="new-password"
+                            type="password"
+                            value={newUser.password}
+                            onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                            placeholder="Wprowadź hasło"
+                            data-testid="input-new-password"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="new-role">Rola</Label>
+                          <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
+                            <SelectTrigger data-testid="select-new-role">
+                              <SelectValue placeholder="Wybierz rolę" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="user">Użytkownik</SelectItem>
+                              <SelectItem value="admin">Administrator</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="md:col-span-2 flex gap-2">
+                          <Button
+                            type="submit"
+                            disabled={createUserMutation.isPending}
+                            className="bg-green-600 hover:bg-green-700"
+                            data-testid="button-create-user"
+                          >
+                            {createUserMutation.isPending ? "Tworzenie..." : "Utwórz użytkownika"}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setShowAddUserForm(false);
+                              setNewUser({ username: "", email: "", password: "", role: "user" });
+                            }}
+                            data-testid="button-cancel-add-user"
+                          >
+                            Anuluj
+                          </Button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nazwa użytkownika</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Rola</TableHead>
+                        <TableHead>Data utworzenia</TableHead>
+                        <TableHead>Akcje</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users.map((userItem) => (
+                        <TableRow key={userItem.id}>
+                          <TableCell className="font-medium" data-testid={`text-username-${userItem.id}`}>
+                            {userItem.username}
+                          </TableCell>
+                          <TableCell data-testid={`text-email-${userItem.id}`}>
+                            {userItem.email}
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={userItem.role}
+                              onValueChange={(value) => handleUpdateUserRole(userItem.id, value)}
+                              disabled={userItem.id === user?.id}
+                            >
+                              <SelectTrigger className="w-32" data-testid={`select-role-${userItem.id}`}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="user">
+                                  <Badge variant="secondary">Użytkownik</Badge>
+                                </SelectItem>
+                                <SelectItem value="admin">
+                                  <Badge variant="destructive">Administrator</Badge>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell data-testid={`text-created-${userItem.id}`}>
+                            {userItem.createdAt ? new Date(userItem.createdAt).toLocaleDateString('pl-PL') : 'N/A'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteUser(userItem.id, userItem.username)}
+                                disabled={userItem.id === user?.id || deleteUserMutation.isPending}
+                                data-testid={`button-delete-${userItem.id}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  
+                  {users.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Brak użytkowników do wyświetlenia
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </MainLayout>

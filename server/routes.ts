@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertContractorSchema, insertTaskSchema, insertOfferSchema, insertEmailSchema, insertSupportTicketSchema, insertNotificationSchema } from "@shared/schema";
+import { insertContractorSchema, insertTaskSchema, insertOfferSchema, insertEmailSchema, insertSupportTicketSchema, insertNotificationSchema, insertUserSchema, updateUserSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication
@@ -274,6 +274,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Błąd oznaczania powiadomienia" });
+    }
+  });
+
+  // User management (admin only)
+  app.get("/api/users", async (req, res) => {
+    try {
+      // In a real app, check for admin authentication here
+      const users = await storage.getUsers();
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: "Błąd pobierania użytkowników" });
+    }
+  });
+
+  app.post("/api/users", async (req, res) => {
+    try {
+      const parsedData = insertUserSchema.parse(req.body);
+      const user = await storage.createUser(parsedData);
+      res.status(201).json(user);
+    } catch (error) {
+      res.status(400).json({ message: "Błąd tworzenia użytkownika" });
+    }
+  });
+
+  app.put("/api/users/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const parsedData = updateUserSchema.parse(req.body);
+      const user = await storage.updateUser(id, parsedData);
+      res.json(user);
+    } catch (error) {
+      res.status(400).json({ message: "Błąd aktualizacji użytkownika" });
+    }
+  });
+
+  app.delete("/api/users/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteUser(id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Błąd usuwania użytkownika" });
     }
   });
 

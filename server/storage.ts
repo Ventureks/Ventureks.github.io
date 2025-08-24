@@ -1,6 +1,7 @@
 import { 
   type User, 
   type InsertUser,
+  type UpdateUser,
   type Contractor,
   type InsertContractor,
   type Task,
@@ -21,6 +22,9 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  getUsers(): Promise<User[]>;
+  updateUser(id: string, user: UpdateUser): Promise<User>;
+  deleteUser(id: string): Promise<void>;
   
   // Contractors
   getContractors(): Promise<Contractor[]>;
@@ -138,6 +142,27 @@ export class MemStorage implements IStorage {
     };
     this.users.set(id, user);
     return user;
+  }
+
+  async getUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
+  async updateUser(id: string, updateUser: UpdateUser): Promise<User> {
+    const user = this.users.get(id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const updatedUser = { ...user, ...updateUser };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    if (!this.users.has(id)) {
+      throw new Error("User not found");
+    }
+    this.users.delete(id);
   }
 
   // Contractors

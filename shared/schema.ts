@@ -72,12 +72,15 @@ export const notifications = pgTable("notifications", {
 });
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-  role: true,
-  email: true,
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
 });
+
+export const updateUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+}).partial();
 
 export const insertContractorSchema = createInsertSchema(contractors).pick({
   name: true,
@@ -125,6 +128,7 @@ export const insertNotificationSchema = createInsertSchema(notifications).pick({
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpdateUser = z.infer<typeof updateUserSchema>;
 export type Contractor = typeof contractors.$inferSelect;
 export type InsertContractor = z.infer<typeof insertContractorSchema>;
 export type Task = typeof tasks.$inferSelect;
