@@ -26,6 +26,7 @@ import type { Contractor } from "@shared/schema";
 export default function Contractors() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedContractor, setSelectedContractor] = useState<Contractor | null>(null);
+  const [editingContractor, setEditingContractor] = useState<Contractor | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
     status: [] as string[],
@@ -114,6 +115,28 @@ export default function Contractors() {
     },
   });
 
+  const updateContractorMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Contractor> }) => {
+      await apiRequest("PUT", `/api/contractors/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/contractors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      setEditingContractor(null);
+      toast({
+        title: "Sukces",
+        description: "Kontrahent został zaktualizowany",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Błąd",
+        description: error instanceof Error ? error.message : "Nie udało się zaktualizować kontrahenta",
+        variant: "destructive",
+      });
+    },
+  });
+
   const deleteContractorMutation = useMutation({
     mutationFn: async (id: string) => {
       await apiRequest("DELETE", `/api/contractors/${id}`);
@@ -147,6 +170,16 @@ export default function Contractors() {
 
   const handleViewDetails = (contractor: Contractor) => {
     setSelectedContractor(contractor);
+  };
+
+  const handleEditContractor = (contractor: Contractor) => {
+    setEditingContractor(contractor);
+  };
+
+  const handleUpdateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingContractor) return;
+    updateContractorMutation.mutate({ id: editingContractor.id, data: editingContractor });
   };
 
   const toggleStatusFilter = (status: string) => {
@@ -498,7 +531,7 @@ export default function Contractors() {
                     <TableCell>
                       <Badge 
                         variant={contractor.status === "active" ? "default" : "secondary"}
-                        className={contractor.status === "active" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}
+                        className={contractor.status === "active" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"}
                       >
                         {contractor.status === "active" ? "Aktywny" : "Nieaktywny"}
                       </Badge>
@@ -513,7 +546,12 @@ export default function Contractors() {
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" data-testid={`button-edit-${contractor.id}`}>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleEditContractor(contractor)}
+                          data-testid={`button-edit-${contractor.id}`}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button 
@@ -570,7 +608,7 @@ export default function Contractors() {
                       <div className="mt-1">
                         <Badge 
                           variant={selectedContractor.status === "active" ? "default" : "secondary"}
-                          className={selectedContractor.status === "active" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}
+                          className={selectedContractor.status === "active" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"}
                         >
                           {selectedContractor.status === "active" ? "Aktywny" : "Nieaktywny"}
                         </Badge>
@@ -672,6 +710,186 @@ export default function Contractors() {
                 </CardContent>
               </Card>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Contractor Dialog */}
+      <Dialog open={!!editingContractor} onOpenChange={() => setEditingContractor(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Edytuj kontrahenta</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setEditingContractor(null)}
+                data-testid="button-close-edit-contractor"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {editingContractor && (
+            <form onSubmit={handleUpdateSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-name">Nazwa firmy</Label>
+                  <Input
+                    id="edit-name"
+                    placeholder="Wprowadź nazwę firmy"
+                    value={editingContractor.name}
+                    onChange={(e) => setEditingContractor(prev => prev ? { ...prev, name: e.target.value } : null)}
+                    required
+                    data-testid="input-edit-contractor-name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-email">Email</Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    placeholder="kontakt@firma.pl"
+                    value={editingContractor.email || ''}
+                    onChange={(e) => setEditingContractor(prev => prev ? { ...prev, email: e.target.value } : null)}
+                    data-testid="input-edit-contractor-email"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-phone">Telefon</Label>
+                  <Input
+                    id="edit-phone"
+                    placeholder="+48 123 456 789"
+                    value={editingContractor.phone || ''}
+                    onChange={(e) => setEditingContractor(prev => prev ? { ...prev, phone: e.target.value } : null)}
+                    data-testid="input-edit-contractor-phone"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-nip">NIP</Label>
+                  <Input
+                    id="edit-nip"
+                    placeholder="1234567890"
+                    value={editingContractor.nip || ''}
+                    onChange={(e) => setEditingContractor(prev => prev ? { ...prev, nip: e.target.value } : null)}
+                    data-testid="input-edit-contractor-nip"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-status">Status</Label>
+                  <Select 
+                    value={editingContractor.status} 
+                    onValueChange={(value) => setEditingContractor(prev => prev ? { ...prev, status: value } : null)}
+                  >
+                    <SelectTrigger data-testid="select-edit-contractor-status">
+                      <SelectValue placeholder="Wybierz status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Aktywny</SelectItem>
+                      <SelectItem value="inactive">Nieaktywny</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="edit-regon">REGON</Label>
+                  <Input
+                    id="edit-regon"
+                    placeholder="123456789"
+                    value={editingContractor.regon || ''}
+                    onChange={(e) => setEditingContractor(prev => prev ? { ...prev, regon: e.target.value } : null)}
+                    data-testid="input-edit-contractor-regon"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-krs">KRS</Label>
+                  <Input
+                    id="edit-krs"
+                    placeholder="0000123456"
+                    value={editingContractor.krs || ''}
+                    onChange={(e) => setEditingContractor(prev => prev ? { ...prev, krs: e.target.value } : null)}
+                    data-testid="input-edit-contractor-krs"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-accountNumber">Numer konta</Label>
+                  <Input
+                    id="edit-accountNumber"
+                    placeholder="12 3456 7890 1234 5678 9012 3456"
+                    value={editingContractor.accountNumber || ''}
+                    onChange={(e) => setEditingContractor(prev => prev ? { ...prev, accountNumber: e.target.value } : null)}
+                    data-testid="input-edit-contractor-account-number"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-province">Województwo</Label>
+                  <Input
+                    id="edit-province"
+                    placeholder="Mazowieckie"
+                    value={editingContractor.province || ''}
+                    onChange={(e) => setEditingContractor(prev => prev ? { ...prev, province: e.target.value } : null)}
+                    data-testid="input-edit-contractor-province"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-address">Adres siedziby</Label>
+                  <Input
+                    id="edit-address"
+                    placeholder="ul. Przykładowa 123"
+                    value={editingContractor.address || ''}
+                    onChange={(e) => setEditingContractor(prev => prev ? { ...prev, address: e.target.value } : null)}
+                    data-testid="input-edit-contractor-address"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-city">Miasto</Label>
+                  <Input
+                    id="edit-city"
+                    placeholder="Warszawa"
+                    value={editingContractor.city || ''}
+                    onChange={(e) => setEditingContractor(prev => prev ? { ...prev, city: e.target.value } : null)}
+                    data-testid="input-edit-contractor-city"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-postalCode">Kod pocztowy</Label>
+                  <Input
+                    id="edit-postalCode"
+                    placeholder="00-001"
+                    value={editingContractor.postalCode || ''}
+                    onChange={(e) => setEditingContractor(prev => prev ? { ...prev, postalCode: e.target.value } : null)}
+                    data-testid="input-edit-contractor-postal-code"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-country">Kraj</Label>
+                  <Input
+                    id="edit-country"
+                    placeholder="Polska"
+                    value={editingContractor.country || ''}
+                    onChange={(e) => setEditingContractor(prev => prev ? { ...prev, country: e.target.value } : null)}
+                    data-testid="input-edit-contractor-country"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditingContractor(null)}
+                  data-testid="button-cancel-edit-contractor"
+                >
+                  Anuluj
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={updateContractorMutation.isPending}
+                  data-testid="button-save-edit-contractor"
+                >
+                  {updateContractorMutation.isPending ? "Zapisywanie..." : "Zaktualizuj kontrahenta"}
+                </Button>
+              </div>
+            </form>
           )}
         </DialogContent>
       </Dialog>
