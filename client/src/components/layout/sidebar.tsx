@@ -7,7 +7,8 @@ import {
   Mail, 
   Shield, 
   Settings,
-  LogOut 
+  LogOut,
+  BarChart3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -19,6 +20,7 @@ const menuItems = [
   { id: "offers", label: "Oferty", icon: FileText, path: "/offers" },
   { id: "emails", label: "Wiadomości email", icon: Mail, path: "/emails" },
   { id: "support", label: "Wsparcie", icon: Shield, path: "/support" },
+  { id: "analytics", label: "Analityka", icon: BarChart3, path: "/analytics" },
   { id: "settings", label: "Ustawienia", icon: Settings, path: "/settings" }
 ];
 

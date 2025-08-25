@@ -13,6 +13,7 @@ import Offers from "@/pages/offers";
 import Emails from "@/pages/emails";
 import EmailSettings from "@/pages/email-settings";
 import Support from "@/pages/support";
+import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
@@ -41,6 +42,7 @@ function Router() {
       <Route path="/emails" component={() => <Emails />} />
       <Route path="/email-settings" component={() => <EmailSettings />} />
       <Route path="/support" component={() => <Support />} />
+      <Route path="/analytics" component={() => <Analytics />} />
       <Route path="/settings" component={() => <Settings />} />
       <Route component={NotFound} />
     </Switch>

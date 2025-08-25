@@ -530,6 +530,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics endpoint
+  app.get("/api/analytics", async (req, res) => {
+    try {
+      const { range } = req.query;
+      const dateRange = typeof range === 'string' ? range : '30';
+      
+      const analyticsData = await storage.getAnalyticsData(dateRange);
+      res.json(analyticsData);
+    } catch (error) {
+      console.error("Error fetching analytics data:", error);
+      res.status(500).json({ message: "Błąd pobierania danych analitycznych" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

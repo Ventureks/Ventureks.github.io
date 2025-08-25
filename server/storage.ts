@@ -69,6 +69,9 @@ export interface IStorage {
 
   // Search
   globalSearch(searchTerm: string, userId: string, types: string[]): Promise<any[]>;
+  
+  // Analytics
+  getAnalyticsData(dateRange: string): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
@@ -595,6 +598,106 @@ export class MemStorage implements IStorage {
     }
 
     return results.slice(0, 20); // Limit to 20 results
+  }
+
+  async getAnalyticsData(dateRange: string): Promise<any> {
+    const now = new Date();
+    const daysBack = parseInt(dateRange, 10) || 30;
+    const startDate = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000);
+
+    // Get all data
+    const contractors = Array.from(this.contractors.values());
+    const tasks = Array.from(this.tasks.values());
+    const offers = Array.from(this.offers.values());
+    const supportTickets = Array.from(this.supportTickets.values());
+    const emails = Array.from(this.emails.values());
+
+    // Filter by date range
+    const filteredTasks = tasks.filter(task => task.createdAt && new Date(task.createdAt) >= startDate);
+    const filteredTickets = supportTickets.filter(ticket => ticket.createdAt && new Date(ticket.createdAt) >= startDate);
+    const filteredOffers = offers.filter(offer => offer.createdAt && new Date(offer.createdAt) >= startDate);
+    const filteredEmails = emails.filter(email => email.createdAt && new Date(email.createdAt) >= startDate);
+
+    // Calculate overview metrics
+    const overview = {
+      totalContractors: contractors.length,
+      activeTasks: tasks.filter(task => task.status === 'in_progress').length,
+      completedTasks: tasks.filter(task => task.status === 'completed').length,
+      openTickets: supportTickets.filter(ticket => ticket.status === 'open').length,
+      resolvedTickets: supportTickets.filter(ticket => ticket.status === 'resolved').length,
+      totalOffers: offers.length,
+      acceptedOffers: offers.filter(offer => offer.status === 'accepted').length,
+      totalEmails: emails.length
+    };
+
+    // Generate monthly data for tasks over time
+    const tasksByMonth = this.generateMonthlyData(filteredTasks, daysBack);
+
+    // Aggregate tickets by status
+    const ticketsByStatus = [
+      { status: 'Otwarte', count: overview.openTickets, color: '#ff7300' },
+      { status: 'W trakcie', count: supportTickets.filter(ticket => ticket.status === 'in_progress').length, color: '#ffc658' },
+      { status: 'Rozwiązane', count: overview.resolvedTickets, color: '#82ca9d' },
+      { status: 'Zamknięte', count: supportTickets.filter(ticket => ticket.status === 'closed').length, color: '#8884d8' }
+    ];
+
+    // Group contractors by type (using mock distribution since type field doesn't exist)
+    const contractorsByType = [
+      { type: 'Dostawcy', count: Math.floor(contractors.length * 0.6) },
+      { type: 'Klienci', count: Math.floor(contractors.length * 0.3) },
+      { type: 'Partnerzy', count: Math.floor(contractors.length * 0.1) }
+    ];
+
+    // Offers by status
+    const offersByStatus = [
+      { status: 'Szkic', count: offers.filter(offer => offer.status === 'draft').length, color: '#8dd1e1' },
+      { status: 'Wysłane', count: offers.filter(offer => offer.status === 'sent').length, color: '#ffc658' },
+      { status: 'Zaakceptowane', count: offers.filter(offer => offer.status === 'accepted').length, color: '#82ca9d' },
+      { status: 'Odrzucone', count: offers.filter(offer => offer.status === 'rejected').length, color: '#ff7300' }
+    ];
+
+    return {
+      overview,
+      charts: {
+        tasksOverTime: tasksByMonth,
+        ticketsByStatus,
+        contractorsByType,
+        offersByStatus
+      }
+    };
+  }
+
+  private generateMonthlyData(tasks: Task[], daysBack: number): Array<{ month: string; created: number; completed: number }> {
+    const monthNames = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', 'Paź', 'Lis', 'Gru'];
+    const months = Math.min(6, Math.ceil(daysBack / 30));
+    const now = new Date();
+    const data = [];
+
+    for (let i = months - 1; i >= 0; i--) {
+      const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+      
+      const monthTasks = tasks.filter(task => {
+        if (!task.createdAt) return false;
+        const taskDate = new Date(task.createdAt);
+        return taskDate >= monthStart && taskDate <= monthEnd;
+      });
+
+      const completedTasks = tasks.filter(task => {
+        if (task.status !== 'completed') return false;
+        if (!task.createdAt) return false;
+        const taskDate = new Date(task.createdAt);
+        return taskDate >= monthStart && taskDate <= monthEnd;
+      });
+
+      data.push({
+        month: monthNames[monthStart.getMonth()],
+        created: monthTasks.length,
+        completed: completedTasks.length
+      });
+    }
+
+    return data;
   }
 }
 
