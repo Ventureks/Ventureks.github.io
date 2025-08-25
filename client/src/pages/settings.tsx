@@ -704,15 +704,15 @@ export default function Settings() {
                               onValueChange={(value) => handleUpdateUserRole(userItem.id, value)}
                               disabled={userItem.id === user?.id}
                             >
-                              <SelectTrigger className="w-40 border-none p-0 h-auto focus:ring-0 [&>svg]:hidden" data-testid={`select-role-${userItem.id}`}>
+                              <SelectTrigger className="w-fit border-none p-0 h-auto focus:ring-0 [&>svg]:hidden" data-testid={`select-role-${userItem.id}`}>
                                 <div className="flex items-center">
                                   <Badge 
                                     variant={userItem.role === 'admin' ? 'destructive' : 'default'}
-                                    className={`cursor-pointer ${userItem.role === 'admin' ? '' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'}`}
+                                    className={`cursor-pointer text-xs px-2 py-1 ${userItem.role === 'admin' ? '' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'}`}
                                   >
                                     {userItem.role === 'admin' ? 'Administrator' : 'Użytkownik'}
                                   </Badge>
-                                  <ChevronDown className="w-4 h-4 ml-2 text-muted-foreground" />
+                                  <ChevronDown className="w-3 h-3 ml-1 text-muted-foreground" />
                                 </div>
                               </SelectTrigger>
                               <SelectContent>
