@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Clock, Edit, Trash2, Calendar } from "lucide-react";
+import { Clock, Edit, Trash2, Calendar, Search, Filter, X } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { MainLayout } from "@/components/layout/main-layout";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -25,6 +33,15 @@ export default function Tasks() {
     status: "pending"
   });
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({
+    priority: [] as string[],
+    status: [] as string[],
+    dateRange: {
+      from: undefined as Date | undefined,
+      to: undefined as Date | undefined
+    }
+  });
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -33,6 +50,24 @@ export default function Tasks() {
   const { data: tasks, isLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks"],
   });
+
+  const filteredTasks = tasks?.filter(task => {
+    const matchesSearch = !searchTerm || 
+      task.title.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesPriority = filters.priority.length === 0 || 
+      filters.priority.includes(task.priority);
+
+    const matchesStatus = filters.status.length === 0 || 
+      filters.status.includes(task.status);
+
+    const taskDate = new Date(task.date);
+    const matchesDateRange = 
+      (!filters.dateRange.from || taskDate >= filters.dateRange.from) &&
+      (!filters.dateRange.to || taskDate <= filters.dateRange.to);
+
+    return matchesSearch && matchesPriority && matchesStatus && matchesDateRange;
+  }) || [];
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: typeof newTask) => {
@@ -81,6 +116,42 @@ export default function Tasks() {
     e.preventDefault();
     createTaskMutation.mutate(newTask);
   };
+
+  const togglePriorityFilter = (priority: string) => {
+    setFilters(prev => ({
+      ...prev,
+      priority: prev.priority.includes(priority)
+        ? prev.priority.filter(p => p !== priority)
+        : [...prev.priority, priority]
+    }));
+  };
+
+  const toggleStatusFilter = (status: string) => {
+    setFilters(prev => ({
+      ...prev,
+      status: prev.status.includes(status)
+        ? prev.status.filter(s => s !== status)
+        : [...prev.status, status]
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      priority: [],
+      status: [],
+      dateRange: {
+        from: undefined,
+        to: undefined
+      }
+    });
+    setSearchTerm("");
+  };
+
+  const uniquePriorities = Array.from(new Set(tasks?.map(t => t.priority) || []));
+  const uniqueStatuses = Array.from(new Set(tasks?.map(t => t.status) || []));
+
+  const activeFiltersCount = filters.priority.length + filters.status.length + 
+    (filters.dateRange.from || filters.dateRange.to ? 1 : 0) + (searchTerm ? 1 : 0);
 
   const toggleTaskComplete = (task: Task) => {
     const newStatus = task.status === "completed" ? "pending" : "completed";

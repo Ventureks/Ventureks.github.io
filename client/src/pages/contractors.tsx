@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Eye, Edit, Trash2, X } from "lucide-react";
+import { Plus, Eye, Edit, Trash2, X, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { MainLayout } from "@/components/layout/main-layout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -17,6 +26,12 @@ import type { Contractor } from "@shared/schema";
 export default function Contractors() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedContractor, setSelectedContractor] = useState<Contractor | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({
+    status: [] as string[],
+    province: [] as string[],
+    country: [] as string[]
+  });
   const [newContractor, setNewContractor] = useState({
     name: "",
     email: "",
@@ -39,6 +54,26 @@ export default function Contractors() {
   const { data: contractors, isLoading } = useQuery<Contractor[]>({
     queryKey: ["/api/contractors"],
   });
+
+  const filteredContractors = contractors?.filter(contractor => {
+    const matchesSearch = !searchTerm || 
+      contractor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contractor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contractor.phone?.includes(searchTerm) ||
+      contractor.nip?.includes(searchTerm) ||
+      contractor.address?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = filters.status.length === 0 || 
+      filters.status.includes(contractor.status);
+
+    const matchesProvince = filters.province.length === 0 || 
+      (contractor.province && filters.province.includes(contractor.province));
+
+    const matchesCountry = filters.country.length === 0 || 
+      (contractor.country && filters.country.includes(contractor.country));
+
+    return matchesSearch && matchesStatus && matchesProvince && matchesCountry;
+  }) || [];
 
   const createContractorMutation = useMutation({
     mutationFn: async (data: typeof newContractor) => {
@@ -114,6 +149,48 @@ export default function Contractors() {
     setSelectedContractor(contractor);
   };
 
+  const toggleStatusFilter = (status: string) => {
+    setFilters(prev => ({
+      ...prev,
+      status: prev.status.includes(status)
+        ? prev.status.filter(s => s !== status)
+        : [...prev.status, status]
+    }));
+  };
+
+  const toggleProvinceFilter = (province: string) => {
+    setFilters(prev => ({
+      ...prev,
+      province: prev.province.includes(province)
+        ? prev.province.filter(p => p !== province)
+        : [...prev.province, province]
+    }));
+  };
+
+  const toggleCountryFilter = (country: string) => {
+    setFilters(prev => ({
+      ...prev,
+      country: prev.country.includes(country)
+        ? prev.country.filter(c => c !== country)
+        : [...prev.country, country]
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      status: [],
+      province: [],
+      country: []
+    });
+    setSearchTerm("");
+  };
+
+  const uniqueStatuses = Array.from(new Set(contractors?.map(c => c.status) || []));
+  const uniqueProvinces = Array.from(new Set(contractors?.map(c => c.province).filter(Boolean) || []));
+  const uniqueCountries = Array.from(new Set(contractors?.map(c => c.country).filter(Boolean) || []));
+
+  const activeFiltersCount = filters.status.length + filters.province.length + filters.country.length + (searchTerm ? 1 : 0);
+
   if (isLoading) {
     return (
       <MainLayout title="Kontrahenci">
@@ -135,6 +212,106 @@ export default function Contractors() {
             <Plus className="w-4 h-4 mr-2" />
             Dodaj kontrahenta
           </Button>
+        </div>
+        
+        {/* Search and Filter Controls */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Szukaj kontrahentów po nazwie, email, telefonie, NIP lub adresie..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+              data-testid="search-contractors-input"
+            />
+          </div>
+          
+          <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="min-w-[120px]">
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filtry
+                  {activeFiltersCount > 0 && (
+                    <Badge variant="secondary" className="ml-2 h-4 text-xs">
+                      {activeFiltersCount}
+                    </Badge>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64" align="end">
+                <DropdownMenuLabel>Status</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {uniqueStatuses.map(status => (
+                  <DropdownMenuCheckboxItem
+                    key={status}
+                    checked={filters.status.includes(status)}
+                    onCheckedChange={() => toggleStatusFilter(status)}
+                  >
+                    {status === 'active' ? 'Aktywny' : status === 'inactive' ? 'Nieaktywny' : status}
+                  </DropdownMenuCheckboxItem>
+                ))}
+                
+                {uniqueProvinces.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Województwo</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {uniqueProvinces.map(province => (
+                      <DropdownMenuCheckboxItem
+                        key={province}
+                        checked={filters.province.includes(province!)}
+                        onCheckedChange={() => toggleProvinceFilter(province!)}
+                      >
+                        {province}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </>
+                )}
+                
+                {uniqueCountries.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Kraj</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {uniqueCountries.map(country => (
+                      <DropdownMenuCheckboxItem
+                        key={country}
+                        checked={filters.country.includes(country!)}
+                        onCheckedChange={() => toggleCountryFilter(country!)}
+                      >
+                        {country}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </>
+                )}
+                
+                {activeFiltersCount > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuCheckboxItem
+                      checked={false}
+                      onCheckedChange={clearFilters}
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Wyczyść filtry
+                    </DropdownMenuCheckboxItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+        
+        {/* Results Summary */}
+        <div className="text-sm text-muted-foreground">
+          {filteredContractors.length === 0 && contractors && contractors.length > 0 && (
+            "Brak wyników dla wybranych kryteriów"
+          )}
+          {filteredContractors.length > 0 && (
+            `Znaleziono ${filteredContractors.length} z ${contractors?.length || 0} kontrahentów`
+          )}
         </div>
         
         {showAddForm && (
@@ -306,7 +483,7 @@ export default function Contractors() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contractors?.map((contractor) => (
+                {filteredContractors.map((contractor) => (
                   <TableRow key={contractor.id} data-testid={`contractor-row-${contractor.id}`}>
                     <TableCell>
                       <div>

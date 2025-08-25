@@ -66,6 +66,9 @@ export interface IStorage {
   createNotification(notification: InsertNotification & { userId: string }): Promise<Notification>;
   markNotificationRead(id: string): Promise<void>;
   markAllNotificationsRead(userId: string): Promise<void>;
+
+  // Search
+  globalSearch(searchTerm: string, userId: string, types: string[]): Promise<any[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -368,11 +371,107 @@ export class MemStorage implements IStorage {
   }
 
   async markAllNotificationsRead(userId: string): Promise<void> {
-    for (const [id, notification] of this.notifications.entries()) {
+    Array.from(this.notifications.entries()).forEach(([id, notification]) => {
       if (notification.userId === userId && !notification.read) {
         this.notifications.set(id, { ...notification, read: true });
       }
+    });
+  }
+
+  async globalSearch(searchTerm: string, userId: string, types: string[]): Promise<any[]> {
+    const results: any[] = [];
+    const term = searchTerm.toLowerCase();
+
+    // Search contractors
+    if (types.includes('contractor')) {
+      Array.from(this.contractors.values()).forEach(contractor => {
+        if (contractor.name.toLowerCase().includes(term) || 
+            contractor.email?.toLowerCase().includes(term) ||
+            contractor.phone?.includes(term) ||
+            contractor.nip?.includes(term)) {
+          results.push({
+            id: contractor.id,
+            type: 'contractor',
+            title: contractor.name,
+            subtitle: contractor.email || contractor.phone || '',
+            details: `NIP: ${contractor.nip || 'Brak'} • Status: ${contractor.status}`,
+            status: contractor.status
+          });
+        }
+      });
     }
+
+    // Search tasks
+    if (types.includes('task')) {
+      Array.from(this.tasks.values()).forEach(task => {
+        if (task.title.toLowerCase().includes(term)) {
+          results.push({
+            id: task.id,
+            type: 'task',
+            title: task.title,
+            subtitle: `${task.date} o ${task.time}`,
+            details: `Priorytet: ${task.priority} • Status: ${task.status}`,
+            status: task.status
+          });
+        }
+      });
+    }
+
+    // Search offers
+    if (types.includes('offer')) {
+      Array.from(this.offers.values()).forEach(offer => {
+        if (offer.title?.toLowerCase().includes(term) ||
+            offer.contractorName?.toLowerCase().includes(term) ||
+            offer.description?.toLowerCase().includes(term)) {
+          results.push({
+            id: offer.id,
+            type: 'offer',
+            title: offer.title || 'Oferta',
+            subtitle: `Dla: ${offer.contractorName || 'Nieznany kontrahent'}`,
+            details: `Kwota: ${offer.finalAmount} ${offer.currency} • Status: ${offer.status}`,
+            status: offer.status
+          });
+        }
+      });
+    }
+
+    // Search emails
+    if (types.includes('email')) {
+      Array.from(this.emails.values()).forEach(email => {
+        if (email.subject.toLowerCase().includes(term) ||
+            email.to.toLowerCase().includes(term) ||
+            email.content?.toLowerCase().includes(term)) {
+          results.push({
+            id: email.id,
+            type: 'email',
+            title: email.subject,
+            subtitle: `Do: ${email.to}`,
+            details: `Status: ${email.status}`,
+            status: email.status
+          });
+        }
+      });
+    }
+
+    // Search support tickets
+    if (types.includes('support')) {
+      Array.from(this.supportTickets.values()).forEach(ticket => {
+        if (ticket.user.toLowerCase().includes(term) ||
+            ticket.issue.toLowerCase().includes(term) ||
+            ticket.email?.toLowerCase().includes(term)) {
+          results.push({
+            id: ticket.id,
+            type: 'support',
+            title: `Zgłoszenie od ${ticket.user}`,
+            subtitle: ticket.email || '',
+            details: `${ticket.issue.substring(0, 100)}... • Status: ${ticket.status} • Priorytet: ${ticket.priority}`,
+            status: ticket.status
+          });
+        }
+      });
+    }
+
+    return results.slice(0, 20); // Limit to 20 results
   }
 }
 

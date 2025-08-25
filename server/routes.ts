@@ -328,6 +328,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Global search endpoint
+  app.get("/api/search", async (req, res) => {
+    try {
+      const { q: searchTerm, types, status } = req.query;
+      
+      if (!searchTerm || (searchTerm as string).length < 2) {
+        return res.json([]);
+      }
+
+      const userId = "default-user";
+      const typesArray = types ? (types as string).split(',') : ['contractor', 'task', 'offer', 'email', 'support'];
+      const results = await storage.globalSearch(searchTerm as string, userId, typesArray);
+      
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ message: "Błąd wyszukiwania" });
+    }
+  });
+
   // User management (admin only)
   app.get("/api/users", async (req, res) => {
     try {
