@@ -707,8 +707,8 @@ export default function Settings() {
                               <SelectTrigger className="w-40 border-none p-0 h-auto focus:ring-0" data-testid={`select-role-${userItem.id}`}>
                                 <div className="flex items-center">
                                   <Badge 
-                                    variant={userItem.role === 'admin' ? 'destructive' : 'secondary'}
-                                    className="cursor-pointer"
+                                    variant={userItem.role === 'admin' ? 'destructive' : 'default'}
+                                    className={`cursor-pointer ${userItem.role === 'admin' ? '' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'}`}
                                   >
                                     {userItem.role === 'admin' ? 'Administrator' : 'Użytkownik'}
                                   </Badge>
@@ -717,7 +717,7 @@ export default function Settings() {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="user">
-                                  <Badge variant="secondary">Użytkownik</Badge>
+                                  <Badge variant="default" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Użytkownik</Badge>
                                 </SelectItem>
                                 <SelectItem value="admin">
                                   <Badge variant="destructive">Administrator</Badge>
