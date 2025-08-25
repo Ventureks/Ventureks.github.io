@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MainLayout } from "@/components/layout/main-layout";
 import { useToast } from "@/hooks/use-toast";
+import { RichTextEditor } from "@/components/RichTextEditor";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
@@ -31,7 +32,11 @@ export default function Emails() {
     queryKey: ["/api/emails"],
   });
 
-  const { data: smtpStatus } = useQuery({
+  const { data: smtpStatus } = useQuery<{
+    configured: boolean;
+    host: string | null;
+    port: number | null;
+  }>({
     queryKey: ["/api/smtp/status"],
   });
 
@@ -176,13 +181,11 @@ export default function Emails() {
                 
                 <div>
                   <Label htmlFor="content">Treść wiadomości</Label>
-                  <Textarea
-                    id="content"
-                    placeholder="Treść wiadomości"
+                  <RichTextEditor
                     value={newEmail.content}
-                    onChange={(e) => setNewEmail(prev => ({ ...prev, content: e.target.value }))}
-                    className="h-32"
-                    data-testid="textarea-email-content"
+                    onChange={(content) => setNewEmail(prev => ({ ...prev, content }))}
+                    placeholder="Treść wiadomości"
+                    className="mt-2"
                   />
                 </div>
                 
