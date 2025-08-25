@@ -704,7 +704,7 @@ export default function Settings() {
                               onValueChange={(value) => handleUpdateUserRole(userItem.id, value)}
                               disabled={userItem.id === user?.id}
                             >
-                              <SelectTrigger className="w-40 border-none p-0 h-auto focus:ring-0" data-testid={`select-role-${userItem.id}`}>
+                              <SelectTrigger className="w-40 border-none p-0 h-auto focus:ring-0 [&>svg]:hidden" data-testid={`select-role-${userItem.id}`}>
                                 <div className="flex items-center">
                                   <Badge 
                                     variant={userItem.role === 'admin' ? 'destructive' : 'default'}
