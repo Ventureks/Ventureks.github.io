@@ -12,7 +12,8 @@ import {
   Download,
   Filter,
   Search,
-  RefreshCw
+  RefreshCw,
+  Eye
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { MainLayout } from "@/components/layout/main-layout";
 import { 
   BarChart, 
@@ -65,10 +67,23 @@ export default function Analytics() {
   const [dateRange, setDateRange] = useState("30");
   const [reportType, setReportType] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDetail, setSelectedDetail] = useState<any>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // Fetch analytics data
   const { data: analyticsData, isLoading, refetch } = useQuery<AnalyticsData>({
     queryKey: ["/api/analytics", { range: dateRange }],
+  });
+
+  // Fetch data based on report type for detailed view
+  const { data: reportData } = useQuery({
+    queryKey: [
+      reportType === 'contractors' ? '/api/contractors' : 
+      reportType === 'tasks' ? '/api/tasks' : 
+      reportType === 'offers' ? '/api/offers' : 
+      reportType === 'support' ? '/api/support-tickets' : '/api/contractors'
+    ],
+    enabled: reportType !== 'overview',
   });
 
   // Show loading or use empty data structure if no data
@@ -94,6 +109,49 @@ export default function Analytics() {
   const handleExport = (format: 'csv' | 'pdf') => {
     // Implementation for export functionality
     console.log(`Eksportowanie raportu w formacie: ${format}`);
+  };
+
+  const handleViewDetails = (item: any, type: string) => {
+    setSelectedDetail({ ...item, type });
+    setIsDetailModalOpen(true);
+  };
+
+  const getDisplayData = () => {
+    if (reportType === 'overview') {
+      // Mix of sample data for overview
+      return [
+        {
+          id: '1',
+          date: '2025-08-25',
+          type: 'Kontrahent',
+          name: 'Firma ABC Sp. z o.o.',
+          status: 'aktywny',
+          value: null
+        },
+        {
+          id: '2', 
+          date: '2025-08-25',
+          type: 'Kontrahent',
+          name: 'XYZ Technologies',
+          status: 'aktywny',
+          value: null
+        }
+      ];
+    }
+    
+    if (reportData && Array.isArray(reportData)) {
+      return reportData.map((item: any) => ({
+        ...item,
+        date: item.createdAt ? new Date(item.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        type: reportType === 'contractors' ? 'Kontrahent' : 
+              reportType === 'tasks' ? 'Zadanie' : 
+              reportType === 'offers' ? 'Oferta' : 'Zgłoszenie',
+        name: item.name || item.title || item.subject || item.user || 'Bez nazwy',
+        value: item.amount || item.finalAmount || null
+      }));
+    }
+    
+    return [];
   };
 
   return (
@@ -346,58 +404,121 @@ export default function Analytics() {
                   </div>
                 </div>
 
-                {/* Sample Report Table */}
+                {/* Dynamic Report Table */}
                 <div className="border rounded-md">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Data</TableHead>
                         <TableHead>Typ</TableHead>
+                        <TableHead>Nazwa</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Wartość</TableHead>
                         <TableHead>Akcje</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      <TableRow>
-                        <TableCell>2024-01-15</TableCell>
-                        <TableCell>Oferta</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">Zaakceptowana</Badge>
-                        </TableCell>
-                        <TableCell>15,000 PLN</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm" data-testid="button-view-details">
-                            Szczegóły
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>2024-01-14</TableCell>
-                        <TableCell>Zadanie</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">Ukończone</Badge>
-                        </TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm" data-testid="button-view-details">
-                            Szczegóły
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>2024-01-13</TableCell>
-                        <TableCell>Zgłoszenie</TableCell>
-                        <TableCell>
-                          <Badge variant="destructive">Otwarte</Badge>
-                        </TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm" data-testid="button-view-details">
-                            Szczegóły
-                          </Button>
-                        </TableCell>
-                      </TableRow>
+                      {getDisplayData()
+                        .filter(item => 
+                          searchTerm === '' || 
+                          item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          item.type?.toLowerCase().includes(searchTerm.toLowerCase())
+                        )
+                        .map((item, index) => (
+                          <TableRow key={item.id || index}>
+                            <TableCell>{item.date}</TableCell>
+                            <TableCell>{item.type}</TableCell>
+                            <TableCell>{item.name}</TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={
+                                  item.status === 'active' || item.status === 'aktywny' ? 'default' :
+                                  item.status === 'completed' || item.status === 'zaakceptowana' ? 'secondary' :
+                                  item.status === 'open' || item.status === 'otwarte' ? 'destructive' : 'outline'
+                                }
+                              >
+                                {item.status || 'Aktywny'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {item.value ? `${item.value.toLocaleString()} PLN` : '-'}
+                            </TableCell>
+                            <TableCell>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => handleViewDetails(item, item.type)}
+                                    data-testid="button-view-details"
+                                  >
+                                    <Eye className="w-4 h-4 mr-1" />
+                                    Szczegóły
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl">
+                                  <DialogHeader>
+                                    <DialogTitle>Szczegóły: {item.name}</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4">
+                                    {selectedDetail && (
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                          <h4 className="font-semibold">Podstawowe informacje</h4>
+                                          <div className="text-sm space-y-1">
+                                            <p><strong>ID:</strong> {selectedDetail.id}</p>
+                                            <p><strong>Typ:</strong> {selectedDetail.type}</p>
+                                            <p><strong>Data utworzenia:</strong> {selectedDetail.date}</p>
+                                            <p><strong>Status:</strong> 
+                                              <Badge className="ml-2" variant={
+                                                selectedDetail.status === 'active' || selectedDetail.status === 'aktywny' ? 'default' :
+                                                selectedDetail.status === 'completed' ? 'secondary' :
+                                                selectedDetail.status === 'open' ? 'destructive' : 'outline'
+                                              }>
+                                                {selectedDetail.status || 'Aktywny'}
+                                              </Badge>
+                                            </p>
+                                          </div>
+                                        </div>
+                                        
+                                        <div className="space-y-2">
+                                          <h4 className="font-semibold">Szczegółowe dane</h4>
+                                          <div className="text-sm space-y-1">
+                                            {selectedDetail.email && (
+                                              <p><strong>Email:</strong> {selectedDetail.email}</p>
+                                            )}
+                                            {selectedDetail.phone && (
+                                              <p><strong>Telefon:</strong> {selectedDetail.phone}</p>
+                                            )}
+                                            {selectedDetail.nip && (
+                                              <p><strong>NIP:</strong> {selectedDetail.nip}</p>
+                                            )}
+                                            {selectedDetail.address && (
+                                              <p><strong>Adres:</strong> {selectedDetail.address}</p>
+                                            )}
+                                            {selectedDetail.description && (
+                                              <p><strong>Opis:</strong> {selectedDetail.description}</p>
+                                            )}
+                                            {selectedDetail.value && (
+                                              <p><strong>Wartość:</strong> {selectedDetail.value.toLocaleString()} PLN</p>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      {getDisplayData().length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                            Brak danych dla wybranego typu raportu
+                          </TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </div>
