@@ -235,7 +235,7 @@ export default function Analytics() {
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={currentData.charts.ticketsByStatus}
+                        data={currentData?.charts?.ticketsByStatus || []}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
@@ -244,7 +244,7 @@ export default function Analytics() {
                         fill="#8884d8"
                         dataKey="count"
                       >
-                        {currentData.charts.ticketsByStatus.map((entry, index) => (
+                        {(currentData?.charts?.ticketsByStatus || []).map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -261,7 +261,7 @@ export default function Analytics() {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={currentData.charts.contractorsByType}>
+                    <BarChart data={currentData?.charts?.contractorsByType || []}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="type" />
                       <YAxis />
@@ -281,7 +281,7 @@ export default function Analytics() {
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={currentData.charts.offersByStatus}
+                        data={currentData?.charts?.offersByStatus || []}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
@@ -290,7 +290,7 @@ export default function Analytics() {
                         fill="#8884d8"
                         dataKey="count"
                       >
-                        {currentData.charts.offersByStatus.map((entry, index) => (
+                        {(currentData?.charts?.offersByStatus || []).map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -481,7 +481,7 @@ export default function Analytics() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={currentData.charts.tasksOverTime}>
+                  <AreaChart data={currentData?.charts?.tasksOverTime || []}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
