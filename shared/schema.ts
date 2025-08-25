@@ -63,11 +63,14 @@ export const offers = pgTable("offers", {
 
 export const emails = pgTable("emails", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  from: text("from"),
   to: text("to").notNull(),
   subject: text("subject").notNull(),
   content: text("content"),
-  status: text("status").notNull().default("draft"), // draft, sent, failed
+  type: text("type").notNull().default("sent"), // sent, received
+  status: text("status").notNull().default("draft"), // draft, sent, failed, read, unread
   userId: varchar("user_id").references(() => users.id),
+  readAt: timestamp("read_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -145,9 +148,11 @@ export const insertOfferSchema = createInsertSchema(offers).omit({
 });
 
 export const insertEmailSchema = createInsertSchema(emails).pick({
+  from: true,
   to: true,
   subject: true,
   content: true,
+  type: true,
   status: true,
 });
 

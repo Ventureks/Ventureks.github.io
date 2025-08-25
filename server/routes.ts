@@ -247,6 +247,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/emails/:id/mark-read", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const email = await storage.updateEmail(id, {
+        status: 'read',
+        readAt: new Date()
+      });
+      res.json(email);
+    } catch (error) {
+      console.error("Error marking email as read:", error);
+      res.status(500).json({ message: "Failed to mark email as read" });
+    }
+  });
+
+  app.patch("/api/emails/:id/mark-unread", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const email = await storage.updateEmail(id, {
+        status: 'unread',
+        readAt: null
+      });
+      res.json(email);
+    } catch (error) {
+      console.error("Error marking email as unread:", error);
+      res.status(500).json({ message: "Failed to mark email as unread" });
+    }
+  });
+
+  app.delete("/api/emails/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteEmail(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting email:", error);
+      res.status(500).json({ message: "Failed to delete email" });
+    }
+  });
+
   // Support Tickets
   app.get("/api/support-tickets", async (req, res) => {
     try {

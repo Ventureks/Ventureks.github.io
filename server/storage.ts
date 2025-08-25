@@ -110,6 +110,14 @@ export class MemStorage implements IStorage {
       email: "kontakt@abc.pl",
       phone: "+48 123 456 789",
       nip: "1234567890",
+      regon: null,
+      krs: null,
+      accountNumber: null,
+      province: null,
+      address: null,
+      city: null,
+      postalCode: null,
+      country: null,
       status: "active",
       createdAt: new Date(),
     };
@@ -120,12 +128,92 @@ export class MemStorage implements IStorage {
       email: "biuro@xyz.pl",
       phone: "+48 987 654 321",
       nip: "9876543210",
+      regon: null,
+      krs: null,
+      accountNumber: null,
+      province: null,
+      address: null,
+      city: null,
+      postalCode: null,
+      country: null,
       status: "active",
       createdAt: new Date(),
     };
     
     this.contractors.set(contractor1.id, contractor1);
     this.contractors.set(contractor2.id, contractor2);
+    
+    // Initialize with demo emails
+    const email1: Email = {
+      id: randomUUID(),
+      from: 'crm@nasza-firma.pl',
+      to: 'klient@firma.pl',
+      subject: 'Oferta cenowa - usługi konsultingowe',
+      content: 'Szanowni Państwo, w załączeniu przesyłamy ofertę cenową na usługi konsultingowe.',
+      type: 'sent',
+      status: 'sent',
+      userId: adminUser.id,
+      readAt: null,
+      createdAt: new Date('2024-01-15')
+    };
+    
+    const email2: Email = {
+      id: randomUUID(),
+      from: 'crm@nasza-firma.pl',
+      to: 'kontrahent@firma.pl',
+      subject: 'Przypomnienie o płatności',
+      content: 'Szanowni Państwo, uprzejmie przypominamy o zaległej płatności za fakturę nr 123/2024.',
+      type: 'sent',
+      status: 'sent',
+      userId: adminUser.id,
+      readAt: null,
+      createdAt: new Date('2024-01-10')
+    };
+    
+    const email3: Email = {
+      id: randomUUID(),
+      from: 'klient@firma.pl',
+      to: 'crm@nasza-firma.pl',
+      subject: 'Zapytanie o dostępność terminu',
+      content: 'Dzień dobry, chciałbym zapytać o dostępność terminu na konsultację w przyszłym tygodniu.',
+      type: 'received',
+      status: 'unread',
+      userId: adminUser.id,
+      readAt: null,
+      createdAt: new Date('2024-01-16')
+    };
+    
+    const email4: Email = {
+      id: randomUUID(),
+      from: 'dostawca@firma.pl',
+      to: 'crm@nasza-firma.pl',
+      subject: 'Potwierdzenie realizacji zamówienia',
+      content: 'Witam, potwierdzam przyjęcie zamówienia nr 456/2024 do realizacji. Szacowany termin dostawy: 5 dni roboczych.',
+      type: 'received',
+      status: 'read',
+      userId: adminUser.id,
+      readAt: new Date('2024-01-14'),
+      createdAt: new Date('2024-01-13')
+    };
+    
+    const email5: Email = {
+      id: randomUUID(),
+      from: 'partner@firma.pl',
+      to: 'crm@nasza-firma.pl',
+      subject: 'Propozycja współpracy',
+      content: '<p>Szanowni Państwo,</p><p>Chciałbym <strong>zaproponować współpracę</strong> w zakresie:</p><ul><li>Wspólnych projektów IT</li><li>Wymiany doświadczeń</li><li>Organizacji szkoleń</li></ul><p>Proszę o kontakt w celu umówienia spotkania.</p>',
+      type: 'received',
+      status: 'unread',
+      userId: adminUser.id,
+      readAt: null,
+      createdAt: new Date('2024-01-17')
+    };
+    
+    this.emails.set(email1.id, email1);
+    this.emails.set(email2.id, email2);
+    this.emails.set(email3.id, email3);
+    this.emails.set(email4.id, email4);
+    this.emails.set(email5.id, email5);
   }
 
   // Users
@@ -140,7 +228,8 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
     const user: User = { 
-      ...insertUser, 
+      ...insertUser,
+      role: insertUser.role || 'user',
       id,
       createdAt: new Date()
     };
@@ -183,6 +272,16 @@ export class MemStorage implements IStorage {
     const contractor: Contractor = {
       ...insertContractor,
       id,
+      nip: insertContractor.nip || null,
+      regon: insertContractor.regon || null,
+      krs: insertContractor.krs || null,
+      accountNumber: insertContractor.accountNumber || null,
+      province: insertContractor.province || null,
+      address: insertContractor.address || null,
+      city: insertContractor.city || null,
+      postalCode: insertContractor.postalCode || null,
+      country: insertContractor.country || null,
+      status: insertContractor.status || 'active',
       createdAt: new Date()
     };
     this.contractors.set(id, contractor);
@@ -217,6 +316,8 @@ export class MemStorage implements IStorage {
     const task: Task = {
       ...taskData,
       id,
+      status: taskData.status || 'pending',
+      priority: taskData.priority || 'medium',
       createdAt: new Date()
     };
     this.tasks.set(id, task);
@@ -255,7 +356,7 @@ export class MemStorage implements IStorage {
       vatRate: insertOffer.vatRate || 23,
       discountPercent: insertOffer.discountPercent || 0,
       currency: insertOffer.currency || 'PLN',
-      validUntil: insertOffer.validUntil ? new Date(insertOffer.validUntil) : null,
+      validUntil: typeof insertOffer.validUntil === 'string' ? new Date(insertOffer.validUntil) : insertOffer.validUntil,
       paymentTerms: insertOffer.paymentTerms || '14 dni',
       category: insertOffer.category || 'Standardowa',
       notes: insertOffer.notes || null,
@@ -271,7 +372,15 @@ export class MemStorage implements IStorage {
     const offer = this.offers.get(id);
     if (!offer) throw new Error("Offer not found");
     
-    const updated = { ...offer, ...updates };
+    const updated = { 
+      ...offer, 
+      ...updates,
+      validUntil: updates.validUntil && typeof updates.validUntil === 'string' 
+        ? new Date(updates.validUntil) 
+        : updates.validUntil !== undefined 
+          ? updates.validUntil 
+          : offer.validUntil
+    };
     this.offers.set(id, updated);
     return updated;
   }
@@ -295,17 +404,26 @@ export class MemStorage implements IStorage {
     const email: Email = {
       ...emailData,
       id,
+      from: emailData.from || null,
+      content: emailData.content || null,
+      type: emailData.type || 'sent',
+      status: emailData.status || 'draft',
+      readAt: null,
       createdAt: new Date()
     };
     this.emails.set(id, email);
     return email;
   }
 
-  async updateEmail(id: string, updates: Partial<InsertEmail>): Promise<Email> {
+  async updateEmail(id: string, updates: Partial<InsertEmail & { readAt?: Date | null }>): Promise<Email> {
     const email = this.emails.get(id);
     if (!email) throw new Error("Email not found");
     
-    const updated = { ...email, ...updates };
+    const updated = { 
+      ...email, 
+      ...updates,
+      readAt: updates.readAt !== undefined ? updates.readAt : email.readAt
+    };
     this.emails.set(id, updated);
     return updated;
   }
@@ -328,6 +446,9 @@ export class MemStorage implements IStorage {
     const ticket: SupportTicket = {
       ...insertTicket,
       id,
+      email: insertTicket.email || null,
+      status: insertTicket.status || 'open',
+      priority: insertTicket.priority || 'medium',
       createdAt: new Date()
     };
     this.supportTickets.set(id, ticket);
@@ -357,6 +478,8 @@ export class MemStorage implements IStorage {
     const notification: Notification = {
       ...notificationData,
       id,
+      type: notificationData.type || 'info',
+      read: notificationData.read || false,
       createdAt: new Date()
     };
     this.notifications.set(id, notification);
