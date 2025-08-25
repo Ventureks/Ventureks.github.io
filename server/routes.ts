@@ -318,6 +318,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/notifications/mark-all-read", async (req, res) => {
+    try {
+      const userId = "default-user";
+      await storage.markAllNotificationsRead(userId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Błąd oznaczania powiadomień" });
+    }
+  });
+
   // User management (admin only)
   app.get("/api/users", async (req, res) => {
     try {

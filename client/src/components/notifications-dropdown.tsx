@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { Bell, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +40,22 @@ export function NotificationsDropdown() {
     },
   });
 
+  const markAllReadMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("PATCH", "/api/notifications/mark-all-read");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+    },
+    onError: () => {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się oznaczyć powiadomień",
+        variant: "destructive",
+      });
+    },
+  });
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleMarkRead = (e: React.MouseEvent, id: string) => {
@@ -73,8 +90,15 @@ export function NotificationsDropdown() {
     return `${Math.floor(diffMins / 1440)} dni temu`;
   };
 
+  const handleDropdownOpen = () => {
+    // Mark all notifications as read when dropdown opens
+    if (unreadCount > 0) {
+      markAllReadMutation.mutate();
+    }
+  };
+
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => { if (open) handleDropdownOpen(); }}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative" data-testid="notifications-trigger">
           <Bell className="w-6 h-6" />

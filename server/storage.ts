@@ -65,6 +65,7 @@ export interface IStorage {
   getNotifications(userId: string): Promise<Notification[]>;
   createNotification(notification: InsertNotification & { userId: string }): Promise<Notification>;
   markNotificationRead(id: string): Promise<void>;
+  markAllNotificationsRead(userId: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -363,6 +364,14 @@ export class MemStorage implements IStorage {
     const notification = this.notifications.get(id);
     if (notification) {
       this.notifications.set(id, { ...notification, read: true });
+    }
+  }
+
+  async markAllNotificationsRead(userId: string): Promise<void> {
+    for (const [id, notification] of this.notifications.entries()) {
+      if (notification.userId === userId && !notification.read) {
+        this.notifications.set(id, { ...notification, read: true });
+      }
     }
   }
 }
