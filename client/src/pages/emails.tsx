@@ -48,7 +48,7 @@ export default function Emails() {
       setNewEmail({ to: "", subject: "", content: "", status: "draft" });
       toast({
         title: "Sukces",
-        description: "Email został wysłany",
+        description: smtpStatus?.configured ? "Email został wysłany" : "Email zapisany jako szkic",
       });
     },
     onError: (error) => {
@@ -132,6 +132,15 @@ export default function Emails() {
           </Alert>
         )}
         
+        {smtpStatus?.configured && (
+          <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+            <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+            <AlertDescription className="text-green-800 dark:text-green-200">
+              SMTP jest skonfigurowany i gotowy do użycia ({smtpStatus.host}:{smtpStatus.port})
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* New Email Form */}
           <Card>
@@ -184,7 +193,12 @@ export default function Emails() {
                   data-testid="button-send-email"
                 >
                   <Send className="w-4 h-4 mr-2" />
-                  {sendEmailMutation.isPending ? "Wysyłanie..." : "Wyślij"}
+                  {sendEmailMutation.isPending 
+                    ? "Wysyłanie..." 
+                    : smtpStatus?.configured 
+                      ? "Wyślij email" 
+                      : "Zapisz jako szkic"
+                  }
                 </Button>
               </form>
             </CardContent>

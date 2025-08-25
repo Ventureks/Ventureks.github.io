@@ -2,7 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertContractorSchema, insertTaskSchema, insertOfferSchema, insertEmailSchema, insertSupportTicketSchema, insertNotificationSchema, insertUserSchema, updateUserSchema } from "@shared/schema";
-import { emailService } from "./email-service";
+import { EmailService } from "./email-service";
+
+// Initialize email service
+const emailService = new EmailService();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication
@@ -325,6 +328,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Błąd oznaczania powiadomień" });
+    }
+  });
+
+  // SMTP Configuration endpoints
+  app.get("/api/smtp/status", async (req, res) => {
+    try {
+      const config = emailService.getConfig();
+      res.json({
+        configured: emailService.isConfigured(),
+        host: config?.host || null,
+        port: config?.port || null,
+        secure: config?.secure || false,
+        user: config?.auth.user || null
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Błąd pobierania statusu SMTP" });
+    }
+  });
+
+  app.post("/api/smtp/configure", async (req, res) => {
+    try {
+      const { host, port, secure, user, pass } = req.body;
+      
+      if (!host || !port || !user || !pass) {
+        return res.status(400).json({ message: "Wszystkie pola SMTP są wymagane" });
+      }
+      
+      emailService.configure({
+        host,
+        port: parseInt(port),
+        secure: Boolean(secure),
+        auth: { user, pass }
+      });
+      
+      res.json({ success: true, message: "Konfiguracja SMTP została zapisana" });
+    } catch (error) {
+      res.status(500).json({ message: "Błąd konfiguracji SMTP" });
+    }
+  });
+
+  app.post("/api/smtp/test", async (req, res) => {
+    try {
+      const result = await emailService.testConnection();
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        error: "Błąd testowania połączenia SMTP" 
+      });
     }
   });
 
