@@ -18,7 +18,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check for stored user data
     const storedUser = localStorage.getItem("crm-user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error("Failed to parse stored user data:", error);
+        localStorage.removeItem("crm-user");
+      }
     }
     setIsLoading(false);
   }, []);

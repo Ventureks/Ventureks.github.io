@@ -48,7 +48,8 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
 
   return (
     <div className={cn("relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900", className)}>
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .ql-toolbar {
           border: none !important;
           border-bottom: 1px solid rgb(229 231 235) !important;
@@ -160,7 +161,8 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
         .ql-toolbar button.ql-active .ql-fill {
           fill: white !important;
         }
-      `}</style>
+        `
+      }} />
       <ReactQuill
         ref={quillRef}
         theme="snow"

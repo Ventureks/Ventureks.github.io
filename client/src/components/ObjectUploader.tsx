@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import Uppy from "@uppy/core";
 import { DashboardModal } from "@uppy/react";
@@ -58,24 +58,45 @@ export function ObjectUploader({
   children,
 }: ObjectUploaderProps) {
   const [showModal, setShowModal] = useState(false);
-  const [uppy] = useState(() =>
-    new Uppy({
+  
+  // Create uppy instance only once to avoid recreating on every render
+  const [uppy] = useState(() => {
+    const uppyInstance = new Uppy({
       restrictions: {
         maxNumberOfFiles,
         maxFileSize,
         allowedFileTypes: ['image/*'],
       },
       autoProceed: false,
-    })
-      .use(AwsS3, {
-        shouldUseMultipart: false,
-        getUploadParameters: onGetUploadParameters,
-      })
-      .on("complete", (result) => {
-        setShowModal(false);
-        onComplete?.(result);
-      })
-  );
+    });
+    
+    return uppyInstance;
+  });
+  
+  // Update uppy configuration when callbacks change
+  useEffect(() => {
+    // Remove existing plugins to avoid duplicates
+    const existingPlugin = uppy.getPlugin('AwsS3');
+    if (existingPlugin) {
+      uppy.removePlugin(existingPlugin);
+    }
+    
+    uppy.use(AwsS3, {
+      shouldUseMultipart: false,
+      getUploadParameters: onGetUploadParameters,
+    });
+    
+    const handleComplete = (result: any) => {
+      setShowModal(false);
+      onComplete?.(result);
+    };
+    
+    uppy.on("complete", handleComplete);
+    
+    return () => {
+      uppy.off("complete", handleComplete);
+    };
+  }, [uppy, onGetUploadParameters, onComplete]);
 
   return (
     <div>

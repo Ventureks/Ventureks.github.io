@@ -170,13 +170,4 @@
 }
 
 /* Hide console error messages but not form validation */
-.console-error {
-  display: none !important;
-}
-
-/* Hide any inline red styling but not our validation classes */
-[style*="color: red"],
-[style*="color:#ff"],
-[style*="color: #ff"] {
-  display: none !important;
-}
+/* Remove console error hiding - we want to see errors for debugging */
