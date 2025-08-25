@@ -281,7 +281,7 @@ export default function Emails() {
                     ? "Wysyłanie..." 
                     : smtpStatus?.configured 
                       ? "Wyślij email" 
-                      : "Zapisz jako szkic"
+                      : "Wyślij"
                   }
                 </Button>
               </form>
