@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { User, Lock, Bell, Globe, Palette, Save, Eye, EyeOff, Users, Plus, Edit, Trash2, ChevronDown } from "lucide-react";
+import { User, Lock, Bell, Globe, Palette, Save, Eye, EyeOff, Users, Plus, Edit, Trash2, ChevronDown, Info, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -239,7 +239,7 @@ export default function Settings() {
     <MainLayout title="Ustawienia">
       <div className="max-w-4xl mx-auto space-y-6">
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className={`grid w-full ${user?.role === "admin" ? "grid-cols-5" : "grid-cols-4"}`}>
+          <TabsList className={`grid w-full ${user?.role === "admin" ? "grid-cols-6" : "grid-cols-5"}`}>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Profil
@@ -255,6 +255,10 @@ export default function Settings() {
             <TabsTrigger value="system" className="flex items-center gap-2">
               <Globe className="w-4 h-4" />
               System
+            </TabsTrigger>
+            <TabsTrigger value="info" className="flex items-center gap-2">
+              <Info className="w-4 h-4" />
+              Informacje
             </TabsTrigger>
             {user?.role === "admin" && (
               <TabsTrigger value="users" className="flex items-center gap-2">
@@ -584,6 +588,52 @@ export default function Settings() {
                     <Save className="w-4 h-4 mr-2" />
                     Zapisz ustawienia
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="info" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Info className="w-5 h-5" />
+                  Informacje o systemie
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-center space-y-2 border rounded-lg p-6 bg-gray-50 dark:bg-gray-900">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">System CRM</h3>
+                    <p className="text-lg text-gray-700 dark:text-gray-300">version 0.2</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Autor: Dawid</p>
+                  </div>
+                  
+                  <div className="mt-6">
+                    <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <History className="w-5 h-5" />
+                      Aktualizacje
+                    </h4>
+                    <div className="space-y-3 border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white">Wersja 0.2</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Dodano system powiadomień i ulepszono interfejs użytkownika</p>
+                        </div>
+                        <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">Aktualna</span>
+                      </div>
+                      
+                      <div className="border-t pt-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">Wersja 0.1</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Pierwsze wydanie systemu CRM</p>
+                          </div>
+                          <span className="text-xs text-gray-500">Poprzednia</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
