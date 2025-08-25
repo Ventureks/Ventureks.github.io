@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { User, Lock, Bell, Globe, Palette, Save, Eye, EyeOff, Users, Plus, Edit, Trash2 } from "lucide-react";
+import { User, Lock, Bell, Globe, Palette, Save, Eye, EyeOff, Users, Plus, Edit, Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -704,8 +704,16 @@ export default function Settings() {
                               onValueChange={(value) => handleUpdateUserRole(userItem.id, value)}
                               disabled={userItem.id === user?.id}
                             >
-                              <SelectTrigger className="w-32" data-testid={`select-role-${userItem.id}`}>
-                                <SelectValue />
+                              <SelectTrigger className="w-40 border-none p-0 h-auto focus:ring-0" data-testid={`select-role-${userItem.id}`}>
+                                <div className="flex items-center">
+                                  <Badge 
+                                    variant={userItem.role === 'admin' ? 'destructive' : 'secondary'}
+                                    className="cursor-pointer"
+                                  >
+                                    {userItem.role === 'admin' ? 'Administrator' : 'Użytkownik'}
+                                  </Badge>
+                                  <ChevronDown className="w-4 h-4 ml-2 text-muted-foreground" />
+                                </div>
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="user">
