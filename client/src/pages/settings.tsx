@@ -605,7 +605,7 @@ export default function Settings() {
                 <div className="space-y-4">
                   <div className="text-center space-y-2 border rounded-lg p-6 bg-gray-50 dark:bg-gray-900">
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white">System CRM</h3>
-                    <p className="text-lg text-gray-700 dark:text-gray-300">version 0.2</p>
+                    <p className="text-lg text-gray-700 dark:text-gray-300">version 0.2.1</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Autor: Dawid</p>
                   </div>
                   
@@ -617,10 +617,20 @@ export default function Settings() {
                     <div className="space-y-3 border rounded-lg p-4">
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-white">Wersja 0.2</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Dodano system powiadomień i ulepszono interfejs użytkownika</p>
+                          <p className="font-medium text-gray-900 dark:text-white">Wersja 0.2.1</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Dodano zaawansowaną analitykę i raporty z wykresami i szczegółowymi statystykami</p>
                         </div>
                         <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">Aktualna</span>
+                      </div>
+                      
+                      <div className="border-t pt-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">Wersja 0.2</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Dodano system powiadomień i ulepszono interfejs użytkownika</p>
+                          </div>
+                          <span className="text-xs text-gray-500">Poprzednia</span>
+                        </div>
                       </div>
                       
                       <div className="border-t pt-3">
