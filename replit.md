@@ -6,6 +6,16 @@ This is a full-stack CRM (Customer Relationship Management) system built with Re
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### January 2025 - Application Installer Package
+- Created comprehensive installer system for CRM application deployment
+- Added multi-platform support (Linux, macOS, Windows)
+- Implemented Docker and native installation methods
+- Created packaging tools for distribution
+- Added management scripts for system administration
+- Included detailed documentation in Polish language
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -25,6 +35,15 @@ Client-side state is managed through a combination of React Context for authenti
 
 ### Build & Development Tools
 The project uses Vite as the build tool and development server, providing fast hot module replacement and optimized production builds. TypeScript is configured across the entire stack for type safety. The application includes path aliases for clean imports and supports both development and production environments with different configurations.
+
+### Deployment & Installation System
+The application includes a comprehensive installer package that supports multiple deployment methods:
+- Docker-based installation with automated container setup
+- Native installation for direct system deployment
+- Windows-specific installer with graphical interface
+- Cross-platform management scripts for system administration
+- Automated backup and restore functionality
+- Diagnostic tools for environment verification
 
 ## External Dependencies
 
@@ -54,3 +73,8 @@ The project uses Vite as the build tool and development server, providing fast h
 - **Express.js**: Web application framework for the REST API server
 - **Zod**: Schema validation for API inputs and data transformation
 - **connect-pg-simple**: PostgreSQL session store for Express sessions
+
+### Installation & Deployment Tools
+- **Docker & Docker Compose**: Containerization for consistent deployment environments
+- **Shell Scripts**: Cross-platform installation and management automation
+- **Package Management**: NPM for JavaScript dependencies and system package managers
