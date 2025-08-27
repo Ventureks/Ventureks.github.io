@@ -359,7 +359,7 @@ export class MemStorage implements IStorage {
       vatRate: insertOffer.vatRate || 23,
       discountPercent: insertOffer.discountPercent || 0,
       currency: insertOffer.currency || 'PLN',
-      validUntil: typeof insertOffer.validUntil === 'string' ? new Date(insertOffer.validUntil) : insertOffer.validUntil,
+      validUntil: typeof insertOffer.validUntil === 'string' ? new Date(insertOffer.validUntil) : insertOffer.validUntil || null,
       paymentTerms: insertOffer.paymentTerms || '14 dni',
       category: insertOffer.category || 'Standardowa',
       notes: insertOffer.notes || null,
@@ -701,4 +701,5 @@ export class MemStorage implements IStorage {
   }
 }
 
+// Tymczasowo używamy MemStorage dopóki nie skonfigurujemy bazy danych
 export const storage = new MemStorage();

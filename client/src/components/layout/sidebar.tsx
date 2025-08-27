@@ -24,9 +24,18 @@ const menuItems = [
   { id: "settings", label: "Ustawienia", icon: Settings, path: "/settings" }
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  onMobileClose?: () => void;
+}
+
+export function Sidebar({ onMobileClose }: SidebarProps) {
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
+
+  const handleNavClick = (path: string) => {
+    setLocation(path);
+    onMobileClose?.(); // Zamknij sidebar na mobile po kliknięciu
+  };
 
   return (
     <div className="w-64 bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen">
@@ -51,14 +60,14 @@ export function Sidebar() {
             return (
               <li key={item.id}>
                 <button
-                  onClick={() => setLocation(item.path)}
+                  onClick={() => handleNavClick(item.path)}
                   className={`flex items-center w-full p-3 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
                     isActive ? "bg-primary/10 border-l-4 border-primary text-primary dark:bg-primary/20" : ""
                   }`}
                   data-testid={`nav-${item.id}`}
                 >
                   <Icon className="w-5 h-5 mr-3" />
-                  {item.label}
+                  <span className="truncate">{item.label}</span>
                 </button>
               </li>
             );

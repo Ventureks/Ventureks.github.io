@@ -33,12 +33,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Weryfikacja reCAPTCHA nieudana" });
       }
       
+      // Sprawdź dane logowania
       const user = await storage.getUserByUsername(username);
       if (!user || user.password !== password) {
         return res.status(401).json({ message: "Nieprawidłowe dane logowania" });
       }
       
-      // In production, use proper session management
+      // Ustaw sesję dla aplikacji webowej
+      (req.session as any).userId = user.id;
+      (req.session as any).user = {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        email: user.email
+      };
+      
       res.json({
         user: {
           id: user.id,
@@ -48,7 +57,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
+      console.error("Login error:", error);
       res.status(500).json({ message: "Błąd serwera" });
+    }
+  });
+
+  // Wylogowanie
+  app.post("/api/auth/logout", (req, res) => {
+    req.session?.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Błąd podczas wylogowania" });
+      }
+      res.clearCookie('connect.sid');
+      res.json({ message: "Wylogowano pomyślnie" });
+    });
+  });
+
+  // Sprawdzenie statusu sesji
+  app.get("/api/auth/me", (req, res) => {
+    const user = (req.session as any)?.user;
+    if (user) {
+      res.json({ user });
+    } else {
+      res.status(401).json({ message: "Brak autoryzacji" });
     }
   });
 

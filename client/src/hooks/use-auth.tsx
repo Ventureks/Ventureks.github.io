@@ -4,7 +4,7 @@ import type { AuthUser } from "@/lib/types";
 interface AuthContextType {
   user: AuthUser | null;
   login: (username: string, password: string, recaptchaToken: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -15,23 +15,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored user data
-    const storedUser = localStorage.getItem("crm-user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error("Failed to parse stored user data:", error);
-        localStorage.removeItem("crm-user");
-      }
-    }
-    setIsLoading(false);
+    // Sprawdź sesję na serwerze przy ładowaniu
+    checkSession();
   }, []);
+
+  const checkSession = async () => {
+    try {
+      const response = await fetch("/api/auth/me", {
+        method: "GET",
+        credentials: "include", // Ważne dla sesji
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+      }
+    } catch (error) {
+      // Użytkownik nie jest zalogowany
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const login = async (username: string, password: string, recaptchaToken: string) => {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include", // Ważne dla sesji
       body: JSON.stringify({ username, password, recaptchaToken }),
     });
 
@@ -42,12 +53,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { user: authUser } = await response.json();
     setUser(authUser);
-    localStorage.setItem("crm-user", JSON.stringify(authUser));
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("crm-user");
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include", // Ważne dla sesji
+      });
+    } catch (error) {
+      console.error("Błąd podczas wylogowania:", error);
+    } finally {
+      setUser(null);
+      // Odśwież stronę aby wyczyścić stan aplikacji
+      window.location.href = "/";
+    }
   };
 
   return (

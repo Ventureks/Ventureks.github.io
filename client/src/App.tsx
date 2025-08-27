@@ -53,12 +53,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="crm-theme">
-        <AuthProvider>
-          <TooltipProvider>
+        <TooltipProvider>
+          <AuthProvider>
             <Toaster />
             <Router />
-          </TooltipProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
